@@ -27,8 +27,13 @@ namespace MT1.AmazonProductAdvtApi
         const string NodeListXml = "KindleNodeList.xml";
         [XmlIgnore]
         const string SaleInformationsXml = "KindleSaleInformations.xml";
+
         [XmlIgnore]
         SignedRequestHelper helper;
+        [XmlIgnore]
+        Blogger blogger;
+        [XmlIgnore]
+        Timer timer;
 
         public class SaleInformation
         {
@@ -38,8 +43,6 @@ namespace MT1.AmazonProductAdvtApi
         }
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
-
-        Blogger blogger;
 
         /// <summary>
         /// コンストラクタ
@@ -54,6 +57,9 @@ namespace MT1.AmazonProductAdvtApi
             helper = new SignedRequestHelper(awsAccessKeyId, awsSecretKey, destination, associateTag);
 
             blogger = new Blogger(Environment.GetEnvironmentVariable("BLOGGER_ID_KINDLE"));
+
+            // タイマーの生成(第３引数の時間経過後から第４引数の時間間隔でコールされる)
+            //timer = new Timer(new TimerCallback(GetSaleInformations), null, 60 * 1000, 300 * 1000);
         }
 
         /// <summary>
