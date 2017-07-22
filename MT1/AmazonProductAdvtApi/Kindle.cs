@@ -21,7 +21,7 @@ namespace MT1.AmazonProductAdvtApi
         [XmlIgnore]
         const string service = "AWSECommerceService";
         [XmlIgnore]
-        const string apiVersion = "2009-03-31";
+        const string apiVersion = "2010-09-01";
 
         [XmlIgnore]
         const string NodeListXml = "KindleNodeList.xml";
