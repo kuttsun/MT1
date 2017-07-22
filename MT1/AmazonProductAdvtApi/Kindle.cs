@@ -236,7 +236,7 @@ namespace MT1.AmazonProductAdvtApi
             WriteXml(doc, $"{saleInformation.nodeId}_{saleInformation.name}.xml");
 
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
-            xmlNsManager.AddNamespace("ns", "http://webservices.amazon.com/AWSECommerceService/2011-08-01");
+            xmlNsManager.AddNamespace("ns", ns);
 
             // エラー情報の取得
             try
