@@ -22,6 +22,8 @@ namespace MT1.AmazonProductAdvtApi
         const string service = "AWSECommerceService";
         [XmlIgnore]
         const string apiVersion = "2010-09-01";
+        [XmlIgnore]
+        const string ns = "http://webservices.amazon.com/AWSECommerceService/2011-08-01";
 
         [XmlIgnore]
         const string NodeListXml = "KindleNodeList.xml";
@@ -148,7 +150,7 @@ namespace MT1.AmazonProductAdvtApi
 
             // 名前空間の指定
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
-            xmlNsManager.AddNamespace("ns", "http://webservices.amazon.com/AWSECommerceService/2011-08-01");
+            xmlNsManager.AddNamespace("ns", ns);
 
             // XML をパースしてノードリストを取得
             XmlNodeList nodeList = doc.SelectNodes("ns:BrowseNodeLookupResponse/ns:BrowseNodes/ns:BrowseNode/ns:Children/ns:BrowseNode", xmlNsManager);
@@ -219,7 +221,7 @@ namespace MT1.AmazonProductAdvtApi
             request["ResponseGroup"] = "Medium";
             request["BrowseNode"] = saleInformation.nodeId;
 
-            Console.WriteLine($"{saleInformation.nodeId} の商品情報取得開始");
+            Console.WriteLine($"\n{saleInformation.nodeId} の商品情報取得開始");
 
             // 署名を行う
             var requestUrl = helper.Sign(request);
@@ -300,7 +302,7 @@ namespace MT1.AmazonProductAdvtApi
             WriteXml(doc, $"ASIN_{asin}.xml");
 
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
-            xmlNsManager.AddNamespace("ns", "http://webservices.amazon.com/AWSECommerceService/2011-08-01");
+            xmlNsManager.AddNamespace("ns", ns);
 
             Console.WriteLine($"ASIN {asin} の詳細取得完了");
         }
