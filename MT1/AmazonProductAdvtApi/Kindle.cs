@@ -35,12 +35,20 @@ namespace MT1.AmazonProductAdvtApi
         [XmlIgnore]
         Timer timer;
 
+        public class ItemDetail
+        {
+            public string asin = null;
+            public string detailPageUrl = null;
+            public string imageUrl = null;
+        }
+
         public class SaleInformation
         {
             public string nodeId = null;
             public string name = null;
             public bool error = false;
             public string moreSearchResultsUrl = null;
+            public List<ItemDetail> items;
         }
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
@@ -208,9 +216,10 @@ namespace MT1.AmazonProductAdvtApi
             request["Version"] = apiVersion;
             request["Operation"] = "ItemSearch";
             request["SearchIndex"] = "KindleStore";
+            request["ResponseGroup"] = "Medium";
             request["BrowseNode"] = saleInformation.nodeId;
 
-            Console.WriteLine($"{saleInformation.nodeId} のURL取得開始");
+            Console.WriteLine($"{saleInformation.nodeId} の商品情報取得開始");
 
             // 署名を行う
             var requestUrl = helper.Sign(request);
@@ -242,7 +251,58 @@ namespace MT1.AmazonProductAdvtApi
 
             saleInformation.moreSearchResultsUrl = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:MoreSearchResultsUrl", xmlNsManager).InnerText;
 
-            Console.WriteLine($"{saleInformation.nodeId} のURL取得完了");
+            // 商品情報を取得
+            XmlNodeList nodeList = doc.SelectNodes("ns:ItemSearchResponse/ns:Items/ns:Item", xmlNsManager);
+            saleInformation.items = new List<ItemDetail>();
+            foreach (XmlNode node in nodeList)
+            {
+                saleInformation.items.Add(new ItemDetail()
+                {
+                    asin = node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText,
+                    detailPageUrl = node.SelectSingleNode("ns:DetailPageURL", xmlNsManager).InnerText,
+                    imageUrl = node.SelectSingleNode("ns:MediumImage/ns:URL", xmlNsManager).InnerText
+                });
+
+                //ItemLookUp(node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText);
+            }
+            Console.WriteLine($"商品情報取得完了({saleInformation.items.Count()}件)");
+
+            Console.WriteLine($"{saleInformation.nodeId} の商品情報取得完了");
+        }
+
+        /// <summary>
+        /// 個別に情報を取得する
+        /// </summary>
+        /// <param name="saleInformation"></param>
+        /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemLookup.html
+        void ItemLookUp(string asin)
+        {
+            IDictionary<string, string> request = new Dictionary<string, String>();
+            request["Service"] = service;
+            request["Version"] = apiVersion;
+            request["Operation"] = "ItemLookup";
+            request["IdType"] = "ASIN";
+            request["ItemId"] = asin;
+            //request["RelationshipType"] = "Episode";
+
+            Console.WriteLine($"ASIN {asin} の詳細取得開始");
+
+            // 署名を行う
+            var requestUrl = helper.Sign(request);
+            // リクエストを送信して xml を取得
+            Task<Stream> webTask = GetXmlAsync(requestUrl);
+            // 処理が完了するまで待機する
+            webTask.Wait();
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(webTask.Result);
+
+            WriteXml(doc, $"ASIN_{asin}.xml");
+
+            XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
+            xmlNsManager.AddNamespace("ns", "http://webservices.amazon.com/AWSECommerceService/2011-08-01");
+
+            Console.WriteLine($"ASIN {asin} の詳細取得完了");
         }
 
         /// <summary>
