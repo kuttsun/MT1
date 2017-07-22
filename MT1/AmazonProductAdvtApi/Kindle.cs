@@ -37,9 +37,10 @@ namespace MT1.AmazonProductAdvtApi
 
         public class SaleInformation
         {
-            public string nodeId;
-            public string name;
-            public string url;
+            public string nodeId = null;
+            public string name = null;
+            public bool error = false;
+            public string moreSearchResultsUrl = null;
         }
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
@@ -80,7 +81,7 @@ namespace MT1.AmazonProductAdvtApi
                 foreach (var saleInformation in saleInformations)
                 {
 
-                    ItemSearch(saleInformation, null);
+                    ItemSearch(saleInformation);
                     count++;
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
                     Thread.Sleep(2000);
@@ -183,8 +184,8 @@ namespace MT1.AmazonProductAdvtApi
             }
             Console.WriteLine($"{addCount}件の新規データを追加(計{saleInformations.Count()}件)");
 
-
-            //saleInfomations.Sort( (a, b) => (a.nodeId - b.nodeId) );
+            // test用
+            saleInformations.Sort((a, b) => string.Compare(b.nodeId, a.nodeId));
 
             // SortedSaleInformations = saleInfomations.OrderByDescending(x => x.nodeId);
         }
@@ -193,10 +194,10 @@ namespace MT1.AmazonProductAdvtApi
         /// 個別に情報を取得する
         /// </summary>
         /// <param name="saleInformation"></param>
-        /// <param name="output"></param>
-        void ItemSearch(SaleInformation saleInformation, string output)
+        /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
+        void ItemSearch(SaleInformation saleInformation)
         {
-            if (saleInformation.url != null)
+            if (saleInformation.moreSearchResultsUrl != null)
             {
                 Console.WriteLine($"{saleInformation.nodeId} は既にURL取得済み");
                 return;
@@ -221,12 +222,25 @@ namespace MT1.AmazonProductAdvtApi
             XmlDocument doc = new XmlDocument();
             doc.Load(webTask.Result);
 
-            WriteXml(doc, saleInformation.nodeId + ".xml");
+            WriteXml(doc, $"{saleInformation.nodeId}_{saleInformation.name}.xml");
 
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", "http://webservices.amazon.com/AWSECommerceService/2011-08-01");
 
-            saleInformation.url = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:MoreSearchResultsUrl", xmlNsManager).InnerText;
+            // エラー情報の取得
+            try
+            {
+                var error = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:Request/ns:Errors/ns:Error/ns:Code", xmlNsManager).InnerText;
+                Console.WriteLine(error);
+                saleInformation.error = true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                saleInformation.error = false;
+            }
+
+            saleInformation.moreSearchResultsUrl = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:MoreSearchResultsUrl", xmlNsManager).InnerText;
 
             Console.WriteLine($"{saleInformation.nodeId} のURL取得完了");
         }
@@ -293,7 +307,7 @@ namespace MT1.AmazonProductAdvtApi
                     doc.Save(fileStream);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
@@ -306,7 +320,7 @@ namespace MT1.AmazonProductAdvtApi
         {
             foreach (var item in saleInformations)
             {
-                string content = $"<p><a href='item.url' target='_href'>{item.url}</a></p>";
+                string content = $"<p><a href='item.url' target='_href'>{item.moreSearchResultsUrl}</a></p>";
                 //blogger.Post(item.name, content, new[] { "Kindle" });
             }
         }
