@@ -33,10 +33,6 @@ namespace MT1
 
             Console.WriteLine("Kindle 情報取得完了");
 
-            Console.WriteLine("Blogger 投稿開始");
-            kindle.PostToBlog();
-            Console.WriteLine("Blogger 投稿完了");
-
             Console.WriteLine("----- End -----");
             Console.ReadKey();
         }

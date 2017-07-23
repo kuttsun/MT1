@@ -21,14 +21,14 @@ namespace MT1.AmazonProductAdvtApi
         [XmlIgnore]
         const string service = "AWSECommerceService";
         [XmlIgnore]
-        const string apiVersion = "2010-09-01";
+        const string apiVersion = "2011-08-01";
         [XmlIgnore]
         const string ns = "http://webservices.amazon.com/AWSECommerceService/2011-08-01";
 
         [XmlIgnore]
-        const string NodeListXml = "KindleNodeList.xml";
+        const string nodeListXml = "KindleNodeList.xml";
         [XmlIgnore]
-        const string SaleInformationsXml = "KindleSaleInformations.xml";
+        const string saleInformationsXml = "KindleSaleInformations.xml";
 
         [XmlIgnore]
         SignedRequestHelper helper;
@@ -39,18 +39,19 @@ namespace MT1.AmazonProductAdvtApi
 
         public class ItemDetail
         {
-            public string asin = null;
-            public string detailPageUrl = null;
-            public string imageUrl = null;
+            public string Asin = null;
+            public string DetailPageUrl = null;
+            public string MediumImageUrl = null;
+            public string LargeImageUrl = null;
         }
 
         public class SaleInformation
         {
-            public string nodeId = null;
-            public string name = null;
-            public bool error = false;
-            public string moreSearchResultsUrl = null;
-            public List<ItemDetail> items;
+            public string NodeId = null;
+            public string Name = null;
+            public bool Error = false;
+            public string MoreSearchResultsUrl = null;
+            public List<ItemDetail> Items;
         }
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
@@ -84,22 +85,22 @@ namespace MT1.AmazonProductAdvtApi
                 // セールの一覧を取得
                 BrowseNodeLookup("2275277051");
 
-                Thread.Sleep(2000);
-
                 // 個々の URL を取得
                 int count = 0;
                 foreach (var saleInformation in saleInformations)
                 {
 
-                    ItemSearch(saleInformation);
+                    if(ItemSearch(saleInformation) == true)
+                    {
+                        PostToBlog(saleInformation);
+                    }
                     count++;
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
-                    Thread.Sleep(2000);
 
-                    if (count >= 10) break;
+                    if (count >= 20) break;
                 }
 
-                SerializeMyself(SaleInformationsXml);
+                SerializeMyself(saleInformationsXml);
             }
             catch (Exception e)
             {
@@ -146,7 +147,7 @@ namespace MT1.AmazonProductAdvtApi
             XmlDocument doc = new XmlDocument();
             doc.Load(webTask.Result);
 
-            WriteXml(doc, NodeListXml);
+            WriteXml(doc, nodeListXml);
 
             // 名前空間の指定
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
@@ -160,8 +161,8 @@ namespace MT1.AmazonProductAdvtApi
             {
                 newSaleInformations.Add(new SaleInformation()
                 {
-                    nodeId = node.SelectSingleNode("ns:BrowseNodeId", xmlNsManager).InnerText,
-                    name = node.SelectSingleNode("ns:Name", xmlNsManager).InnerText
+                    NodeId = node.SelectSingleNode("ns:BrowseNodeId", xmlNsManager).InnerText,
+                    Name = node.SelectSingleNode("ns:Name", xmlNsManager).InnerText
                 });
             }
             Console.WriteLine($"セール情報一覧取得完了({newSaleInformations.Count()}件)");
@@ -170,7 +171,7 @@ namespace MT1.AmazonProductAdvtApi
             int deleteCount = 0;
             foreach (var saleInformation in saleInformations)
             {
-                var foundItem = newSaleInformations.Find(item => item.nodeId == saleInformation.nodeId);
+                var foundItem = newSaleInformations.Find(item => item.NodeId == saleInformation.NodeId);
 
                 if (foundItem == null)
                 {
@@ -184,7 +185,7 @@ namespace MT1.AmazonProductAdvtApi
             int addCount = 0;
             foreach (var newSaleInformation in newSaleInformations)
             {
-                var foundItem = saleInformations.Find(item => item.nodeId == newSaleInformation.nodeId);
+                var foundItem = saleInformations.Find(item => item.NodeId == newSaleInformation.NodeId);
 
                 if (foundItem == null)
                 {
@@ -195,7 +196,7 @@ namespace MT1.AmazonProductAdvtApi
             Console.WriteLine($"{addCount}件の新規データを追加(計{saleInformations.Count()}件)");
 
             // test用
-            saleInformations.Sort((a, b) => string.Compare(b.nodeId, a.nodeId));
+            saleInformations.Sort((a, b) => string.Compare(b.NodeId, a.NodeId));
 
             // SortedSaleInformations = saleInfomations.OrderByDescending(x => x.nodeId);
         }
@@ -205,13 +206,15 @@ namespace MT1.AmazonProductAdvtApi
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
-        void ItemSearch(SaleInformation saleInformation)
+        bool ItemSearch(SaleInformation saleInformation)
         {
-            if (saleInformation.moreSearchResultsUrl != null)
+            if (saleInformation.MoreSearchResultsUrl != null)
             {
-                Console.WriteLine($"{saleInformation.nodeId} は既にURL取得済み");
-                return;
+                Console.WriteLine($"{saleInformation.NodeId} は既に商品情報取得済み");
+                return false;
             }
+
+            Thread.Sleep(2000);
 
             IDictionary<string, string> request = new Dictionary<string, String>();
             request["Service"] = service;
@@ -219,9 +222,9 @@ namespace MT1.AmazonProductAdvtApi
             request["Operation"] = "ItemSearch";
             request["SearchIndex"] = "KindleStore";
             request["ResponseGroup"] = "Medium";
-            request["BrowseNode"] = saleInformation.nodeId;
+            request["BrowseNode"] = saleInformation.NodeId;
 
-            Console.WriteLine($"\n{saleInformation.nodeId} の商品情報取得開始");
+            Console.WriteLine($"\n{saleInformation.NodeId} の商品情報取得開始");
 
             // 署名を行う
             var requestUrl = helper.Sign(request);
@@ -233,7 +236,7 @@ namespace MT1.AmazonProductAdvtApi
             XmlDocument doc = new XmlDocument();
             doc.Load(webTask.Result);
 
-            WriteXml(doc, $"{saleInformation.nodeId}_{saleInformation.name}.xml");
+            WriteXml(doc, $"{saleInformation.NodeId}.xml");
 
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
@@ -243,33 +246,36 @@ namespace MT1.AmazonProductAdvtApi
             {
                 var error = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:Request/ns:Errors/ns:Error/ns:Code", xmlNsManager).InnerText;
                 Console.WriteLine(error);
-                saleInformation.error = true;
+                saleInformation.Error = true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                saleInformation.error = false;
+                saleInformation.Error = false;
             }
 
-            saleInformation.moreSearchResultsUrl = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:MoreSearchResultsUrl", xmlNsManager).InnerText;
+            saleInformation.MoreSearchResultsUrl = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:MoreSearchResultsUrl", xmlNsManager).InnerText;
 
             // 商品情報を取得
             XmlNodeList nodeList = doc.SelectNodes("ns:ItemSearchResponse/ns:Items/ns:Item", xmlNsManager);
-            saleInformation.items = new List<ItemDetail>();
+            saleInformation.Items = new List<ItemDetail>();
             foreach (XmlNode node in nodeList)
             {
-                saleInformation.items.Add(new ItemDetail()
+                saleInformation.Items.Add(new ItemDetail()
                 {
-                    asin = node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText,
-                    detailPageUrl = node.SelectSingleNode("ns:DetailPageURL", xmlNsManager).InnerText,
-                    imageUrl = node.SelectSingleNode("ns:MediumImage/ns:URL", xmlNsManager).InnerText
+                    Asin = node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText,
+                    DetailPageUrl = node.SelectSingleNode("ns:DetailPageURL", xmlNsManager).InnerText,
+                    MediumImageUrl = node.SelectSingleNode("ns:MediumImage/ns:URL", xmlNsManager).InnerText,
+                    LargeImageUrl = node.SelectSingleNode("ns:LargeImage/ns:URL", xmlNsManager).InnerText
                 });
 
                 //ItemLookUp(node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText);
             }
-            Console.WriteLine($"商品情報取得完了({saleInformation.items.Count()}件)");
+            Console.WriteLine($"商品情報取得完了({saleInformation.Items.Count()}件)");
 
-            Console.WriteLine($"{saleInformation.nodeId} の商品情報取得完了");
+            Console.WriteLine($"{saleInformation.NodeId} の商品情報取得完了");
+
+            return true;
         }
 
         /// <summary>
@@ -350,7 +356,7 @@ namespace MT1.AmazonProductAdvtApi
                         // throw;
                     }
 
-                    Thread.Sleep(3000);
+                    Thread.Sleep(2000);
                 }
             }
         }
@@ -378,13 +384,17 @@ namespace MT1.AmazonProductAdvtApi
         /// <summary>
         /// ブログに投稿する
         /// </summary>
-        public void PostToBlog()
+        void PostToBlog(SaleInformation saleInformation)
         {
-            foreach (var item in saleInformations)
+            string content = string.Empty;
+            foreach (var item in saleInformation.Items)
             {
-                string content = $"<p><a href='item.url' target='_href'>{item.moreSearchResultsUrl}</a></p>";
-                //blogger.Post(item.name, content, new[] { "Kindle" });
+                content += $@"<p>
+<a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a>
+<a href='{item.DetailPageUrl}' target='_href'>{item.Asin}</a>
+</p>";
             }
+            blogger.Post(saleInformation.Name, content, new[] { "Kindle" });
         }
     }
 }
