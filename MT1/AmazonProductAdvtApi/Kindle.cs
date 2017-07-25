@@ -19,6 +19,9 @@ namespace MT1.AmazonProductAdvtApi
     public class Kindle
     {
         [XmlIgnore]
+        HttpClient client = new HttpClient();
+
+        [XmlIgnore]
         const string service = "AWSECommerceService";
         [XmlIgnore]
         const string apiVersion = "2011-08-01";
@@ -71,6 +74,9 @@ namespace MT1.AmazonProductAdvtApi
 
             blogger = new Blogger(Environment.GetEnvironmentVariable("BLOGGER_ID_KINDLE"));
 
+            // タイムアウトをセット
+            client.Timeout = TimeSpan.FromSeconds(10.0);
+
             // タイマーの生成(第３引数の時間経過後から第４引数の時間間隔でコールされる)
             //timer = new Timer(new TimerCallback(GetSaleInformations), null, 60 * 1000, 300 * 1000);
         }
@@ -91,7 +97,7 @@ namespace MT1.AmazonProductAdvtApi
                 foreach (var saleInformation in saleInformations)
                 {
 
-                    if(ItemSearch(saleInformation) == true)
+                    if (ItemSearch(saleInformation) == true)
                     {
                         await PostToBlogAsync(saleInformation);
                     }
@@ -322,43 +328,38 @@ namespace MT1.AmazonProductAdvtApi
         async Task<Stream> GetXmlAsync(string uri)
         {
             // 参考：http://www.atmarkit.co.jp/ait/articles/1501/06/news086.html
-            using (HttpClient client = new HttpClient())
+
+            while (true)
             {
-                // タイムアウトをセット（オプション）
-                client.Timeout = TimeSpan.FromSeconds(10.0);
-
-                while (true)
+                try
                 {
-                    try
-                    {
-                        // Webページを取得するのは、事実上この1行だけ
-                        return await client.GetStreamAsync(uri);
-                    }
-                    catch (HttpRequestException e)
-                    {
-                        // 404エラーや、名前解決失敗など
-                        Console.WriteLine("\n例外発生!");
-                        // InnerExceptionも含めて、再帰的に例外メッセージを表示する
-                        Exception ex = e;
-                        while (ex != null)
-                        {
-                            Console.WriteLine(ex.Message);
-                            ex = ex.InnerException;
-                        }
-
-                        //throw;
-                    }
-                    catch (TaskCanceledException e)
-                    {
-                        // タスクがキャンセルされたとき（一般的にタイムアウト）
-                        Console.WriteLine("\nタイムアウト!");
-                        Console.WriteLine(e.Message);
-
-                        // throw;
-                    }
-
-                    Thread.Sleep(2000);
+                    // Webページを取得するのは、事実上この1行だけ
+                    return await client.GetStreamAsync(uri);
                 }
+                catch (HttpRequestException e)
+                {
+                    // 404エラーや、名前解決失敗など
+                    Console.WriteLine("\n例外発生!");
+                    // InnerExceptionも含めて、再帰的に例外メッセージを表示する
+                    Exception ex = e;
+                    while (ex != null)
+                    {
+                        Console.WriteLine(ex.Message);
+                        ex = ex.InnerException;
+                    }
+
+                    //throw;
+                }
+                catch (TaskCanceledException e)
+                {
+                    // タスクがキャンセルされたとき（一般的にタイムアウト）
+                    Console.WriteLine("\nタイムアウト!");
+                    Console.WriteLine(e.Message);
+
+                    // throw;
+                }
+
+                Thread.Sleep(2000);
             }
         }
 
