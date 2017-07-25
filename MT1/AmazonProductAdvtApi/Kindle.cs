@@ -52,6 +52,7 @@ namespace MT1.AmazonProductAdvtApi
             public bool Error = false;
             public string MoreSearchResultsUrl = null;
             public List<ItemDetail> Items;
+            public PostInformation PostInformation;
         }
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
@@ -78,7 +79,7 @@ namespace MT1.AmazonProductAdvtApi
         /// コールバック
         /// </summary>
         /// <param name="args"></param>
-        public void GetSaleInformations(object args)
+        public async void GetSaleInformations(object args)
         {
             try
             {
@@ -92,7 +93,7 @@ namespace MT1.AmazonProductAdvtApi
 
                     if(ItemSearch(saleInformation) == true)
                     {
-                        PostToBlog(saleInformation);
+                        await PostToBlogAsync(saleInformation);
                     }
                     count++;
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
@@ -384,7 +385,7 @@ namespace MT1.AmazonProductAdvtApi
         /// <summary>
         /// ブログに投稿する
         /// </summary>
-        void PostToBlog(SaleInformation saleInformation)
+        async Task PostToBlogAsync(SaleInformation saleInformation)
         {
             string content = string.Empty;
             foreach (var item in saleInformation.Items)
@@ -394,7 +395,9 @@ namespace MT1.AmazonProductAdvtApi
 <a href='{item.DetailPageUrl}' target='_href'>{item.Asin}</a>
 </p>";
             }
-            blogger.Post(saleInformation.Name, content, new[] { "Kindle" });
+            saleInformation.PostInformation = await blogger.PostAsync(saleInformation.Name, content, new[] { "Kindle" });
+
+            Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
         }
     }
 }
