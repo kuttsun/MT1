@@ -21,13 +21,13 @@ namespace MT1.GoogleApi
 
     class Blogger
     {
-        string blogID;
+        string blogId;
         UserCredential credential = null;
         BloggerService service = null;
 
-        public Blogger(string blogID)
+        public Blogger(string blogId)
         {
-            this.blogID = blogID;
+            this.blogId = blogId;
         }
 
         async Task<UserCredential> GetCredentialAsync()
@@ -77,7 +77,7 @@ namespace MT1.GoogleApi
                 newPost.Content = content;
                 newPost.Published = DateTime.Now;
                 newPost.Labels = labels;
-                var updPost = service.Posts.Insert(newPost, blogID).Execute();
+                var updPost = service.Posts.Insert(newPost, blogId).Execute();
 
                 return new PostInformation { Url = updPost.Url, PostId = updPost.Id };
             }
@@ -87,6 +87,30 @@ namespace MT1.GoogleApi
             }
 
             return null;
+        }
+
+        public async Task UpdatePostAsync(string title, string content, IList<string> labels, PostInformation postInformation)
+        {
+            try
+            {
+                // Bloggerのインスタンスを取得
+                var service = await GetServiceAsync();
+
+                // 現在のエントリを取得して更新する
+                var newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
+                newPost.Title = title;
+                newPost.Content = content;
+                newPost.Labels = labels;
+                var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
+
+                // 更新後の情報を取得
+                postInformation.Url = updPost.Url;
+                postInformation.PostId = updPost.Id;
+            }
+            catch (Exception e)
+            {
+                Console.Write(e.Message);
+            }
         }
     }
 }
