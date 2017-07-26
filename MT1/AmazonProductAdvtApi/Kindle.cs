@@ -388,17 +388,44 @@ namespace MT1.AmazonProductAdvtApi
         /// </summary>
         async Task PostToBlogAsync(SaleInformation saleInformation)
         {
-            string content = string.Empty;
-            foreach (var item in saleInformation.Items)
-            {
-                content += $@"<p>
-<a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a>
-<a href='{item.DetailPageUrl}' target='_href'>{item.Asin}</a>
-</p>";
-            }
-            saleInformation.PostInformation = await blogger.PostAsync(saleInformation.Name, content, new[] { "Kindle" });
+            saleInformation.PostInformation = await blogger.PostAsync(CreateArticle(saleInformation));
 
             Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+        }
+
+        /// <summary>
+        /// 投稿済みの記事を更新する
+        /// </summary>
+        async Task UpdateArticleAsync(SaleInformation saleInformation)
+        {
+
+            await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
+
+            Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+        }
+
+        /// <summary>
+        /// 記事の内容を作成する
+        /// </summary>
+        /// <param name="saleInformation"></param>
+        /// <returns></returns>
+        Article CreateArticle(SaleInformation saleInformation)
+        {
+            Article article = new Article();
+
+            article.title = saleInformation.Name;
+
+            foreach (var item in saleInformation.Items)
+            {
+                article.content += $@"<p>
+            <a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a>
+            <a href='{item.DetailPageUrl}' target='_href'>{item.Asin}</a>
+            </p>";
+            }
+
+            article.labels = new[] { "Kindle" };
+
+            return article;
         }
     }
 }

@@ -19,6 +19,13 @@ namespace MT1.GoogleApi
         public string PostId;
     }
 
+    public class Article
+    {
+        public string title;
+        public string content;
+        public IList<string> labels;
+    }
+
     class Blogger
     {
         string blogId;
@@ -61,7 +68,7 @@ namespace MT1.GoogleApi
             return service;
         }
 
-        public async Task<PostInformation> PostAsync(string title, string content, IList<string> labels)
+        public async Task<PostInformation> PostAsync(Article article)
         {
             try
             {
@@ -73,10 +80,10 @@ namespace MT1.GoogleApi
 
                 // Blogに新しいエントリを作成する
                 var newPost = new Post();
-                newPost.Title = title;
-                newPost.Content = content;
+                newPost.Title = article.title;
+                newPost.Content = article.content;
                 newPost.Published = DateTime.Now;
-                newPost.Labels = labels;
+                newPost.Labels = article.labels;
                 var updPost = service.Posts.Insert(newPost, blogId).Execute();
 
                 return new PostInformation { Url = updPost.Url, PostId = updPost.Id };
@@ -89,7 +96,7 @@ namespace MT1.GoogleApi
             return null;
         }
 
-        public async Task UpdatePostAsync(string title, string content, IList<string> labels, PostInformation postInformation)
+        public async Task UpdatePostAsync(Article article, PostInformation postInformation)
         {
             try
             {
@@ -98,9 +105,9 @@ namespace MT1.GoogleApi
 
                 // 現在のエントリを取得して更新する
                 var newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
-                newPost.Title = title;
-                newPost.Content = content;
-                newPost.Labels = labels;
+                newPost.Title = article.title;
+                newPost.Content = article.content;
+                newPost.Labels = article.labels;
                 var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
 
                 // 更新後の情報を取得
