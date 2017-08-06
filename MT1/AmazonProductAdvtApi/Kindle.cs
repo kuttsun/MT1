@@ -427,5 +427,27 @@ namespace MT1.AmazonProductAdvtApi
 
             return article;
         }
+
+        /// <summary>
+        /// タイトルからタグを抽出する
+        /// </summary>
+        /// <param name="title"></param>
+        /// <returns></returns>
+        public List<string> ExtractTags(string title)
+        {
+            var tags = new List<string>();
+            string[] keys = {"%OFF" };
+
+            foreach (var key in keys)
+            {
+                if (title.Contains(key) == true)
+                {
+                    tags.Add("割引");
+                    break;
+                }
+            }
+
+            return tags;
+        }
     }
 }
