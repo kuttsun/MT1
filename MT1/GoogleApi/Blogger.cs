@@ -83,7 +83,10 @@ namespace MT1.GoogleApi
                 newPost.Title = article.title;
                 newPost.Content = article.content;
                 newPost.Published = DateTime.Now;
-                newPost.Labels = article.labels;
+                if (article.labels.Count > 0)
+                {
+                    newPost.Labels = article.labels;
+                }
                 var updPost = service.Posts.Insert(newPost, blogId).Execute();
 
                 return new PostInformation { Url = updPost.Url, PostId = updPost.Id };
@@ -107,7 +110,10 @@ namespace MT1.GoogleApi
                 var newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
                 newPost.Title = article.title;
                 newPost.Content = article.content;
-                newPost.Labels = article.labels;
+                if (article.labels.Count > 0)
+                {
+                    newPost.Labels = article.labels;
+                }
                 var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
 
                 // 更新後の情報を取得

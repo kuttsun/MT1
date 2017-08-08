@@ -13,6 +13,7 @@ using System.Threading;
 using System.Xml.Serialization;
 
 using MT1.GoogleApi;
+using MT1.Extensions;
 
 namespace MT1.AmazonProductAdvtApi
 {
@@ -423,7 +424,8 @@ namespace MT1.AmazonProductAdvtApi
             </p>";
             }
 
-            article.labels = new[] { "Kindle" };
+            // タイトルからラベルを抽出
+            article.labels = ExtractLabels(article.title);
 
             return article;
         }
@@ -433,21 +435,29 @@ namespace MT1.AmazonProductAdvtApi
         /// </summary>
         /// <param name="title"></param>
         /// <returns></returns>
-        public List<string> ExtractTags(string title)
+        public List<string> ExtractLabels(string title)
         {
-            var tags = new List<string>();
-            string[] keys = {"%OFF" };
+            var labels = new List<string>();
 
-            foreach (var key in keys)
+            var pairs = new Dictionary<string, string[]>();
+
+            pairs.Add("割引", new[] { "%OFF" });
+            pairs.Add("ポイント還元", new[] { "ポイント還元" });
+            pairs.Add("キャンペーン", new[] { "キャンペーン" });
+            pairs.Add("期間限定", new[] { "期間限定" });
+            pairs.Add("無料", new[] { "無料" });
+            pairs.Add("均一", new[] { "均一" });
+            pairs.Add("特集・フェア", new[] { "特集", "フェア" });
+
+            foreach (var key in pairs.Keys)
             {
-                if (title.Contains(key) == true)
+                if (title.Contains(pairs[key]) == true)
                 {
-                    tags.Add("割引");
-                    break;
+                    labels.Add(key);
                 }
             }
 
-            return tags;
+            return labels;
         }
     }
 }
