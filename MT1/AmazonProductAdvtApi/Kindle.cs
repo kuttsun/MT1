@@ -43,6 +43,9 @@ namespace MT1.AmazonProductAdvtApi
 
         public class ItemDetail
         {
+            public string Title = null;
+            public string Content = null;
+            public string PublicationDate = null;
             public string Asin = null;
             public string DetailPageUrl = null;
             public string MediumImageUrl = null;
@@ -271,6 +274,9 @@ namespace MT1.AmazonProductAdvtApi
             {
                 saleInformation.Items.Add(new ItemDetail()
                 {
+                    Title = node.SelectSingleNode("ns:ItemAttributes/ns:Title", xmlNsManager).InnerText,
+                    PublicationDate = node.SelectSingleNode("ns:ItemAttributes/ns:PublicationDate", xmlNsManager)?.InnerText,
+                    Content = node.SelectSingleNode("ns:EditorialReviews/ns:EditorialReview/ns:Content", xmlNsManager)?.InnerText,
                     Asin = node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText,
                     DetailPageUrl = node.SelectSingleNode("ns:DetailPageURL", xmlNsManager).InnerText,
                     MediumImageUrl = node.SelectSingleNode("ns:MediumImage/ns:URL", xmlNsManager).InnerText,
@@ -420,7 +426,8 @@ namespace MT1.AmazonProductAdvtApi
             {
                 article.content += $@"<p>
             <a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a>
-            <a href='{item.DetailPageUrl}' target='_href'>{item.Asin}</a>
+            <a href='{item.DetailPageUrl}' target='_href'>{item.Title}</a>
+            {item.Asin} {item.PublicationDate}<br>{item.Content}
             </p>";
             }
 
