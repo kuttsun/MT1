@@ -374,6 +374,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         async Task PostToBlogAsync(SaleInformation saleInformation)
         {
+            if(saleInformation.Error == true){
+                return;
+            }
+
             saleInformation.PostInformation = await blogger.PostAsync(CreateArticle(saleInformation));
 
             Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");

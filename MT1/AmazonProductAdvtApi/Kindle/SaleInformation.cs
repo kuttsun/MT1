@@ -14,8 +14,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             public string Name = null;
             public bool Error = false;
             public string MoreSearchResultsUrl = null;
-            public List<ItemDetail> Items;
-            public PostInformation PostInformation;
+            public List<ItemDetail> Items = null;
+            public PostInformation PostInformation = null;
         }
     }
 }
