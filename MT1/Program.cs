@@ -3,7 +3,7 @@ using System.Text;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
-using MT1.AmazonProductAdvtApi;
+using MT1.AmazonProductAdvtApi.Kindle;
 
 namespace MT1
 {

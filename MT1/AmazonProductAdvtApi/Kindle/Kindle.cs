@@ -15,9 +15,9 @@ using System.Xml.Serialization;
 using MT1.GoogleApi;
 using MT1.Extensions;
 
-namespace MT1.AmazonProductAdvtApi
+namespace MT1.AmazonProductAdvtApi.Kindle
 {
-    public class Kindle
+    public partial class Kindle
     {
         [XmlIgnore]
         HttpClient client = new HttpClient();
@@ -40,27 +40,6 @@ namespace MT1.AmazonProductAdvtApi
         Blogger blogger;
         [XmlIgnore]
         Timer timer;
-
-        public class ItemDetail
-        {
-            public string Title = null;
-            public string Content = null;
-            public string PublicationDate = null;
-            public string Asin = null;
-            public string DetailPageUrl = null;
-            public string MediumImageUrl = null;
-            public string LargeImageUrl = null;
-        }
-
-        public class SaleInformation
-        {
-            public string NodeId = null;
-            public string Name = null;
-            public bool Error = false;
-            public string MoreSearchResultsUrl = null;
-            public List<ItemDetail> Items;
-            public PostInformation PostInformation;
-        }
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
 
