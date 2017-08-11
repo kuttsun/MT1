@@ -87,7 +87,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     count++;
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
 
-                    if (count >= 20) break;
+                    // デバッグ用に指定回数だけ実行する
+                    if (count >= 30) break;
                 }
 
                 SerializeMyself(saleInformationsXml);
