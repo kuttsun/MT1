@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-using MT1.AmazonProductAdvtApi;
+using MT1.AmazonProductAdvtApi.Kindle;
 
 namespace MT1.Test
 {
@@ -19,6 +19,17 @@ namespace MT1.Test
         {
             var kindle = new Kindle();
             Assert.True(kindle.ExtractLabels(title).Contains(expected));
+        }
+
+        [Theory,
+            InlineData("8/17", "【期間限定無料&amp;50%OFF】「夏☆電書」女の恨み～リベンジ～特集 (8/17まで)"),
+            InlineData("6/8", "【期間限定無料お試し&amp;通常版半額】小説・ラノベのコミカライズ作品フェア（6/8まで）"),
+            InlineData("8/14", "【最大50%ポイント還元】3日間限定全点フェア（8/14まで）（終了"),
+            InlineData(null, "【50%ポイント還元】　SBクリエイティブキャンペーン")]
+        public void ExtractEndDateTest(string expected, string title)
+        {
+            var kindle = new Kindle();
+            Assert.Equal(expected, kindle.ExtractEndDate(title));
         }
     }
 }

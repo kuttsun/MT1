@@ -11,6 +11,7 @@ using System.IO;
 
 using System.Threading;
 using System.Xml.Serialization;
+using System.Text.RegularExpressions;
 
 using MT1.GoogleApi;
 using MT1.Extensions;
@@ -375,7 +376,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         async Task PostToBlogAsync(SaleInformation saleInformation)
         {
-            if(saleInformation.Error == true){
+            if (saleInformation.Error == true)
+            {
                 return;
             }
 
@@ -449,6 +451,26 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
 
             return labels;
+        }
+
+        /// <summary>
+        /// タイトルから終了日を抽出
+        /// </summary>
+        /// <param name="title"></param>
+        /// <returns></returns>
+        /// https://www.ipentec.com/document/document.aspx?page=csharp-regular-expression-patern-match-and-extract-substring
+        /// http://kuroeveryday.blogspot.jp/2014/10/regex.html
+        public string ExtractEndDate(string title)
+        {
+            //var result = Regex.Match(title, ".*\\((?<EndDate>.*?)まで\\).*");
+            var result = Regex.Match(title, @".*(\(|（)(?<EndDate>.*?)まで(\)|）).*");
+
+            if (result.Success == true)
+            {
+                return result.Groups["EndDate"].Value;
+            }
+
+            return null;
         }
     }
 }
