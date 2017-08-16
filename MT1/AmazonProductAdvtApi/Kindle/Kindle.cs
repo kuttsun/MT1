@@ -5,7 +5,6 @@ using System.Linq;
 
 using System.Xml;
 using System.Xml.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.IO;
 
@@ -52,14 +51,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             try
             {
                 // セールの一覧を取得
-                BrowseNodeLookup("2275277051");
+                await BrowseNodeLookupAsync("2275277051");
 
                 // 個々の URL を取得
                 int count = 0;
                 foreach (var saleInformation in saleInformations)
                 {
 
-                    if (ItemSearch(saleInformation) == true)
+                    if (await ItemSearchAsync(saleInformation) == true)
                     {
                         await PostToBlogAsync(saleInformation);
                     }
@@ -94,7 +93,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// セールの一覧を取得
         /// </summary>
         /// <param name="nodeId">基準となるノードID</param>
-        void BrowseNodeLookup(string browseNodeId)
+        async Task BrowseNodeLookupAsync(string browseNodeId)
         {
             IDictionary<string, string> request = new Dictionary<string, String>();
             request["Service"] = service;
@@ -107,13 +106,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             Console.WriteLine($"セール情報一覧取得開始");
 
             // リクエストを送信して xml を取得
-            Task<Stream> webTask = GetXmlAsync(request);
-            // 処理が完了するまで待機する
-            webTask.Wait();
+            var result = await GetXmlAsync(request);
 
             // 取得した XML を読み込む
             XmlDocument doc = new XmlDocument();
-            doc.Load(webTask.Result);
+            doc.Load(result);
 
             WriteXml(doc, nodeListXml);
 
@@ -174,7 +171,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
-        bool ItemSearch(SaleInformation saleInformation)
+        async Task<bool> ItemSearchAsync(SaleInformation saleInformation)
         {
             if (saleInformation.MoreSearchResultsUrl != null)
             {
@@ -182,7 +179,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 return false;
             }
 
-            Thread.Sleep(2000);
+            await Task.Delay(2000);
 
             IDictionary<string, string> request = new Dictionary<string, String>();
             request["Service"] = service;
@@ -195,12 +192,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             Console.WriteLine($"\n{saleInformation.NodeId} の商品情報取得開始");
 
             // リクエストを送信して xml を取得
-            Task<Stream> webTask = GetXmlAsync(request);
-            // 処理が完了するまで待機する
-            webTask.Wait();
+            var result = await GetXmlAsync(request);
 
             XmlDocument doc = new XmlDocument();
-            doc.Load(webTask.Result);
+            doc.Load(result);
 
             WriteXml(doc, $"{saleInformation.NodeId}.xml");
 
@@ -252,7 +247,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemLookup.html
-        void ItemLookUp(string asin)
+        async Task ItemLookUpAsync(string asin)
         {
             IDictionary<string, string> request = new Dictionary<string, String>();
             request["Service"] = service;
@@ -265,12 +260,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             Console.WriteLine($"ASIN {asin} の詳細取得開始");
 
             // リクエストを送信して xml を取得
-            Task<Stream> webTask = GetXmlAsync(request);
-            // 処理が完了するまで待機する
-            webTask.Wait();
+            var result = await GetXmlAsync(request);
 
             XmlDocument doc = new XmlDocument();
-            doc.Load(webTask.Result);
+            doc.Load(result);
 
             WriteXml(doc, $"ASIN_{asin}.xml");
 

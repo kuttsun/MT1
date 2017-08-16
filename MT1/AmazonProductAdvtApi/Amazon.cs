@@ -8,11 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.IO;
 
-using System.Threading;
-using System.Xml.Serialization;
-using System.Text.RegularExpressions;
-
-
 namespace MT1.AmazonProductAdvtApi
 {
     public class Amazon
@@ -82,7 +77,7 @@ namespace MT1.AmazonProductAdvtApi
                     // throw;
                 }
 
-                Thread.Sleep(2000);
+                await Task.Delay(2000);
             }
         }
 
