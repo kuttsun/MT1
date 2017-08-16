@@ -18,25 +18,13 @@ using MT1.Extensions;
 
 namespace MT1.AmazonProductAdvtApi.Kindle
 {
-    public partial class Kindle
+    public partial class Kindle : Amazon
     {
-        [XmlIgnore]
-        HttpClient client = new HttpClient();
-
-        [XmlIgnore]
-        const string service = "AWSECommerceService";
-        [XmlIgnore]
-        const string apiVersion = "2011-08-01";
-        [XmlIgnore]
-        const string ns = "http://webservices.amazon.com/AWSECommerceService/2011-08-01";
-
         [XmlIgnore]
         const string nodeListXml = "KindleNodeList.xml";
         [XmlIgnore]
         const string saleInformationsXml = "KindleSaleInformations.xml";
 
-        [XmlIgnore]
-        SignedRequestHelper helper;
         [XmlIgnore]
         Blogger blogger;
         [XmlIgnore]
@@ -49,17 +37,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         public Kindle()
         {
-            string awsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
-            string awsSecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_KEY");
-            string associateTag = Environment.GetEnvironmentVariable("ASSOCIATE_TAG");
-            string destination = "ecs.amazonaws.jp";
-
-            helper = new SignedRequestHelper(awsAccessKeyId, awsSecretKey, destination, associateTag);
-
             blogger = new Blogger(Environment.GetEnvironmentVariable("BLOGGER_ID_KINDLE"));
-
-            // タイムアウトをセット
-            client.Timeout = TimeSpan.FromSeconds(10.0);
 
             // タイマーの生成(第３引数の時間経過後から第４引数の時間間隔でコールされる)
             //timer = new Timer(new TimerCallback(GetSaleInformations), null, 60 * 1000, 300 * 1000);
@@ -128,10 +106,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             Console.WriteLine($"現在の件数:{saleInformations.Count()}件");
             Console.WriteLine($"セール情報一覧取得開始");
 
-            // 署名を行う
-            var requestUrl = helper.Sign(request);
             // リクエストを送信して xml を取得
-            Task<Stream> webTask = GetXmlAsync(requestUrl);
+            Task<Stream> webTask = GetXmlAsync(request);
             // 処理が完了するまで待機する
             webTask.Wait();
 
@@ -218,10 +194,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             Console.WriteLine($"\n{saleInformation.NodeId} の商品情報取得開始");
 
-            // 署名を行う
-            var requestUrl = helper.Sign(request);
             // リクエストを送信して xml を取得
-            Task<Stream> webTask = GetXmlAsync(requestUrl);
+            Task<Stream> webTask = GetXmlAsync(request);
             // 処理が完了するまで待機する
             webTask.Wait();
 
@@ -290,10 +264,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             Console.WriteLine($"ASIN {asin} の詳細取得開始");
 
-            // 署名を行う
-            var requestUrl = helper.Sign(request);
             // リクエストを送信して xml を取得
-            Task<Stream> webTask = GetXmlAsync(requestUrl);
+            Task<Stream> webTask = GetXmlAsync(request);
             // 処理が完了するまで待機する
             webTask.Wait();
 
@@ -306,69 +278,6 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             xmlNsManager.AddNamespace("ns", ns);
 
             Console.WriteLine($"ASIN {asin} の詳細取得完了");
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        async Task<Stream> GetXmlAsync(string uri)
-        {
-            // 参考：http://www.atmarkit.co.jp/ait/articles/1501/06/news086.html
-
-            while (true)
-            {
-                try
-                {
-                    // Webページを取得するのは、事実上この1行だけ
-                    return await client.GetStreamAsync(uri);
-                }
-                catch (HttpRequestException e)
-                {
-                    // 404エラーや、名前解決失敗など
-                    Console.WriteLine("\n例外発生!");
-                    // InnerExceptionも含めて、再帰的に例外メッセージを表示する
-                    Exception ex = e;
-                    while (ex != null)
-                    {
-                        Console.WriteLine(ex.Message);
-                        ex = ex.InnerException;
-                    }
-
-                    //throw;
-                }
-                catch (TaskCanceledException e)
-                {
-                    // タスクがキャンセルされたとき（一般的にタイムアウト）
-                    Console.WriteLine("\nタイムアウト!");
-                    Console.WriteLine(e.Message);
-
-                    // throw;
-                }
-
-                Thread.Sleep(2000);
-            }
-        }
-
-        /// <summary>
-        /// XMLファイルに出力する
-        /// </summary>
-        /// <param name="doc"></param>
-        /// <param name="outputFile"></param>
-        void WriteXml(XmlDocument doc, string outputFile)
-        {
-            try
-            {
-                using (var fileStream = new FileStream(outputFile, FileMode.Create))
-                {
-                    doc.Save(fileStream);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
         }
 
         /// <summary>
