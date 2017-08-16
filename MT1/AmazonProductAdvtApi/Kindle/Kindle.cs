@@ -310,6 +310,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             article.title = saleInformation.Name;
 
+            article.content += $@"<p>
+            <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>
+            </p>";
+
             foreach (var item in saleInformation.Items)
             {
                 article.content += $@"<p>

@@ -17,6 +17,7 @@ namespace MT1.AmazonProductAdvtApi
         protected static readonly string service = "AWSECommerceService";
         protected static readonly string apiVersion = "2011-08-01";
         protected static readonly string ns = "http://webservices.amazon.com/AWSECommerceService/2011-08-01";
+        protected string AssociateTag { get; } = null;
 
         SignedRequestHelper helper;
 
@@ -27,10 +28,11 @@ namespace MT1.AmazonProductAdvtApi
         {
             string awsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
             string awsSecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_KEY");
-            string associateTag = Environment.GetEnvironmentVariable("ASSOCIATE_TAG");
             string destination = "ecs.amazonaws.jp";
 
-            helper = new SignedRequestHelper(awsAccessKeyId, awsSecretKey, destination, associateTag);
+            AssociateTag = Environment.GetEnvironmentVariable("ASSOCIATE_TAG");
+
+            helper = new SignedRequestHelper(awsAccessKeyId, awsSecretKey, destination, AssociateTag);
 
             // タイムアウトをセット
             client.Timeout = TimeSpan.FromSeconds(10.0);
@@ -99,6 +101,17 @@ namespace MT1.AmazonProductAdvtApi
             {
                 Console.WriteLine(e.Message);
             }
+        }
+
+        /// <summary>
+        /// ブラウズノードのアソシエイトリンクを取得
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        /// 参考：https://affiliate.amazon.co.jp/help/topic/t121/a1
+        protected string GetAssociateLinkByBrowseNode(string node)
+        {
+            return $"http://www.amazon.co.jp/b?ie=UTF8&node={node}&tag={AssociateTag}&linkCode=ure&creative=6339";
         }
     }
 }
