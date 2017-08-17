@@ -125,5 +125,29 @@ namespace MT1.GoogleApi
                 Console.Write(e.Message);
             }
         }
+
+        /// <summary>
+        /// ページを更新する
+        /// </summary>
+        /// <param name="pageId"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public async Task UpdatePageAsync(string pageId, string content)
+        {
+            try
+            {
+                // Bloggerのインスタンスを取得
+                var service = await GetServiceAsync();
+
+                // 現在のページを取得して更新する
+                var newPage = service.Pages.Get(blogId, pageId).Execute();
+                newPage.Content = content;
+                var updPage = service.Pages.Update(newPage, blogId, pageId).Execute();
+            }
+            catch (Exception e)
+            {
+                Console.Write(e.Message);
+            }
+        }
     }
 }

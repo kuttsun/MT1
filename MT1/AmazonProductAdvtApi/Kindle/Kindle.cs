@@ -27,6 +27,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         [XmlIgnore]
         Blogger blogger;
         [XmlIgnore]
+        string pageId = "5107391980448290602";
+        [XmlIgnore]
         Timer timer;
 
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
@@ -70,6 +72,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 }
 
                 SerializeMyself(saleInformationsXml);
+
+                await UpdatePageAsync();
             }
             catch (Exception e)
             {
@@ -377,6 +381,29 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
 
             return null;
+        }
+
+        async Task UpdatePageAsync()
+        {
+            string content = $@"<p>
+            Amazon Product Advertising API から取得した Kindle のセールページ一覧です。<br>
+            この中にはまだセールを開始していないものや、既に終了したセールなど、セールではないものもありますのでご注意ください。
+            </p>
+            <p>
+            更新日時：{DateTime.Now}
+            </p>";
+
+            content += "<ul>";
+            foreach (var saleInformation in saleInformations)
+            {
+                content += $@"<li>
+                <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>
+                {saleInformation.NodeId} {saleInformation.Name}</a>
+                </li>";
+            }
+            content += "</ul>";
+
+            await blogger.UpdatePageAsync(pageId, content);
         }
     }
 }
