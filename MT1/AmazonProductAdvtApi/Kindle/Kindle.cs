@@ -219,6 +219,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 saleInformation.Error = false;
             }
 
+            saleInformation.TotalResults = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:TotalResults", xmlNsManager).InnerText;
+
             // 商品情報を取得
             XmlNodeList nodeList = doc.SelectNodes("ns:ItemSearchResponse/ns:Items/ns:Item", xmlNsManager);
             saleInformation.Items = new List<ItemDetail>();
@@ -313,7 +315,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             article.title = saleInformation.Name;
 
             article.content += $@"<p>
-            <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>
+            対象は{saleInformation.TotalResults}冊。<br>
+            <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>。
             </p>";
 
             foreach (var item in saleInformation.Items)
