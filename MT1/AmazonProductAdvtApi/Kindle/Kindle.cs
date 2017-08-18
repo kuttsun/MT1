@@ -177,9 +177,9 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
         async Task<bool> ItemSearchAsync(SaleInformation saleInformation)
         {
-            if (saleInformation.MoreSearchResultsUrl != null)
+            if (saleInformation.PostInformation != null)
             {
-                Console.WriteLine($"{saleInformation.NodeId} は既に商品情報取得済み");
+                Console.WriteLine($"{saleInformation.NodeId} は既に投稿済み");
                 return false;
             }
 
@@ -218,8 +218,6 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 Console.WriteLine(e.Message);
                 saleInformation.Error = false;
             }
-
-            saleInformation.MoreSearchResultsUrl = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:MoreSearchResultsUrl", xmlNsManager).InnerText;
 
             // 商品情報を取得
             XmlNodeList nodeList = doc.SelectNodes("ns:ItemSearchResponse/ns:Items/ns:Item", xmlNsManager);
