@@ -31,6 +31,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         [XmlIgnore]
         Timer timer;
 
+        public string LastUpdate = null;
+
         public List<SaleInformation> saleInformations = new List<SaleInformation>();
 
         /// <summary>
@@ -54,6 +56,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             {
                 // セールの一覧を取得
                 await BrowseNodeLookupAsync("2275277051");
+
+                LastUpdate = DateTime.Now.ToString("yyyy/MM/dd (ddd) HH:mm:ss");
 
                 // 個々の URL を取得
                 int count = 0;
@@ -391,7 +395,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             この中にはまだセールを開始していないものや、既に終了したセールなど、セールではないものもありますのでご注意ください。
             </p>
             <p>
-            更新日時：{DateTime.Now}
+            更新日時：{LastUpdate}
             </p>";
 
             content += "<ul>";
