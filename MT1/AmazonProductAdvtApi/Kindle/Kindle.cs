@@ -12,6 +12,8 @@ using System.Threading;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 
+using AngleSharp.Parser.Html;
+
 using MT1.GoogleApi;
 using MT1.Extensions;
 
@@ -66,6 +68,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
                     if (await ItemSearchAsync(saleInformation) == true)
                     {
+                        await CheckSalePeriod(saleInformation);
+
                         await PostToBlogAsync(saleInformation);
                     }
                     count++;
@@ -77,6 +81,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
                 SerializeMyself(saleInformationsXml);
 
+                // セール一覧を更新
                 await UpdatePageAsync();
             }
             catch (Exception e)
@@ -388,6 +393,34 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             return null;
         }
 
+        /// <summary>
+        /// セールページをスクレイピングしてセール期間を判別
+        /// </summary>
+        /// <param name="saleInformation"></param>
+        /// <returns></returns>
+        public async Task<bool> ExtractSalePeriod(SaleInformation saleInformation)
+        {
+            // 指定したサイトのHTMLをストリームで取得する
+            using (var stream = await client.GetStreamAsync(GetAssociateLinkByBrowseNode(saleInformation.NodeId)))
+            {
+                // AngleSharp.Parser.Html.HtmlParserオブジェクトにHTMLをパースさせる
+                var parser = new HtmlParser();
+                var doc = parser.Parse(stream);
+
+                var element = doc.QuerySelector("h3");
+
+                // 例：期間限定：8/18（金）～8/31（木）
+                var result = Regex.Match(element.InnerHtml, @"期間限定：(?<StartDate>.*?)（.*）～(?<EndDate>.*?)（.*）");
+
+                if (result.Success == true)
+                {
+                    saleInformation.SetSalePeriod(result.Groups["StartDate"].Value, result.Groups["EndDate"].Value);
+                }
+
+                return result.Success;
+            }
+        }
+
         async Task UpdatePageAsync()
         {
             string content = $@"<p>
@@ -403,12 +436,36 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             {
                 content += $@"<li>
                 <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>
-                {saleInformation.NodeId} {saleInformation.Name}</a>
+                {saleInformation.NodeId} {saleInformation.Name}</a> {saleInformation.StartDate} ～ {saleInformation.EndDate}
                 </li>";
             }
             content += "</ul>";
 
             await blogger.UpdatePageAsync(pageId, content);
+        }
+
+        /// <summary>
+        /// セール期間を判別してセットする
+        /// </summary>
+        /// <param name="saleInformation"></param>
+        async Task CheckSalePeriod(SaleInformation saleInformation)
+        {
+            // タイトルから終了日を判別
+            var endDate = ExtractEndDate(saleInformation.Name);
+            if (endDate != null)
+            {
+                saleInformation.EndDate = DateTime.Parse(endDate);
+                return;
+            }
+
+            // セールページをスクレイピングしてセール期間を判別
+            if (await ExtractSalePeriod(saleInformation) == true)
+            {
+                return;
+            }
+
+            // ここまできたら、セールページは存在するが、タイトルからもセールページからもセール期間が判別できないので、
+            // 何も処理しない
         }
     }
 }

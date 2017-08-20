@@ -12,7 +12,7 @@ namespace MT1.AmazonProductAdvtApi
 {
     public class Amazon
     {
-        HttpClient client = new HttpClient();
+        protected HttpClient client = new HttpClient();
 
         protected static readonly string service = "AWSECommerceService";
         protected static readonly string apiVersion = "2011-08-01";
