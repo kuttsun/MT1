@@ -17,6 +17,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             public DateTime StartDate;
             // セール終了日
             public DateTime EndDate;
+            // セールが開始したかどうか
+            public bool SaleStarted = false;
+            // セールが終了したかどうか
+            public bool SaleFinished = false;
             public string TotalResults = null;
             public List<ItemDetail> Items = null;
             public PostInformation PostInformation = null;
