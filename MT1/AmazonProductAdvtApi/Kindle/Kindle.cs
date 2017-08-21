@@ -436,7 +436,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             {
                 content += $@"<li>
                 <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>
-                {saleInformation.NodeId} {saleInformation.Name}</a> {saleInformation.StartDate} ～ {saleInformation.EndDate}
+                {saleInformation.NodeId} {saleInformation.Name}</a> （{saleInformation.GetSalePeriod()}）
                 </li>";
             }
             content += "</ul>";
@@ -460,6 +460,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 {
                     saleInformation.SaleFinished = true;
                 }
+                else
+                {
+                    saleInformation.SaleStarted = true;
+                }
                 return;
             }
 
@@ -470,7 +474,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 {
                     saleInformation.SaleFinished = true;
                 }
-                else if(saleInformation.StartDate < DateTime.Now)
+                else if (saleInformation.StartDate < DateTime.Now)
                 {
                     saleInformation.SaleStarted = true;
                     saleInformation.SaleFinished = false;

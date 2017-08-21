@@ -20,5 +20,25 @@ namespace MT1.Test
             Assert.Equal("2017/12/31", saleInformation.StartDate.ToString("yyyy/MM/dd"));
             Assert.Equal("2018/01/01", saleInformation.EndDate.ToString("yyyy/MM/dd"));
         }
+
+        [Fact]
+        public void GetSalePeriodTest()
+        {
+            var saleInformation = new Kindle.SaleInformation();
+
+            saleInformation.SaleStarted = false;
+            saleInformation.SaleFinished = false;
+            Assert.Equal("期間不明", saleInformation.GetSalePeriod());
+
+            saleInformation.SaleStarted = true;
+            saleInformation.EndDate = DateTime.Parse("2017/08/31");
+            Assert.Equal("8/31まで", saleInformation.GetSalePeriod());
+
+            saleInformation.StartDate = DateTime.Parse("2017/08/01");
+            Assert.Equal("8/1～8/31", saleInformation.GetSalePeriod());
+
+            saleInformation.SaleFinished = true;
+            Assert.Equal("終了", saleInformation.GetSalePeriod());
+        }
     }
 }

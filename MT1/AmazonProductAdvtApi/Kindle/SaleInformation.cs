@@ -40,6 +40,28 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     this.EndDate = this.EndDate.AddYears(1);
                 }
             }
+
+            public string GetSalePeriod()
+            {
+                if (SaleFinished == true)
+                {
+                    return "終了";
+                }
+
+                if (SaleStarted == true && SaleFinished == false)
+                {
+                    if (StartDate == DateTime.MinValue)
+                    {
+                        return $"{EndDate.ToString("M/d")}まで";
+                    }
+                    else
+                    {
+                        return $"{StartDate.ToString("M/d")}～{EndDate.ToString("M/d")}";
+                    }
+                }
+
+                return "期間不明";
+            }
         }
     }
 }
