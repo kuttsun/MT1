@@ -101,28 +101,39 @@ namespace MT1.GoogleApi
 
         public async Task UpdatePostAsync(Article article, PostInformation postInformation)
         {
-            try
+
+            // Bloggerのインスタンスを取得
+            var service = await GetServiceAsync();
+
+            // 現在のエントリを取得して更新する
+            var newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
+            newPost.Title = article.title;
+            newPost.Content = article.content;
+            if (article.labels.Count > 0)
             {
-                // Bloggerのインスタンスを取得
-                var service = await GetServiceAsync();
-
-                // 現在のエントリを取得して更新する
-                var newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
-                newPost.Title = article.title;
-                newPost.Content = article.content;
-                if (article.labels.Count > 0)
-                {
-                    newPost.Labels = article.labels;
-                }
-                var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
-
-                // 更新後の情報を取得
-                postInformation.Url = updPost.Url;
-                postInformation.PostId = updPost.Id;
+                newPost.Labels = article.labels;
             }
-            catch (Exception e)
+
+            // API がエラーを返した場合は指数バックオフによりリトライする
+            int timer = 1000;
+            while (true)
             {
-                Console.Write(e.Message);
+                try
+                {
+                    var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
+
+                    // 更新後の情報を取得
+                    postInformation.Url = updPost.Url;
+                    postInformation.PostId = updPost.Id;
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    await Task.Delay(timer);
+                    timer *= 2;
+                    Console.WriteLine("投稿失敗、リトライします");
+                }
             }
         }
 
