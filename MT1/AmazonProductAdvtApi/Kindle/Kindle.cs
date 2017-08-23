@@ -76,7 +76,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
 
                     // デバッグ用に指定回数だけ実行する
-                    if (count >= 30) break;
+                    if (count >= 50) break;
                 }
 
                 SerializeMyself(saleInformationsXml);
@@ -407,17 +407,25 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 var parser = new HtmlParser();
                 var doc = parser.Parse(stream);
 
-                var element = doc.QuerySelector("h3");
-
-                // 例：期間限定：8/18（金）～8/31（木）
-                var result = Regex.Match(element.InnerHtml, @"期間限定：(?<StartDate>.*?)（.*）～(?<EndDate>.*?)（.*）");
-
-                if (result.Success == true)
+                // ページによって h3 の場合も h4 の場合もある
+                foreach (var tag in new[] { "h3", "h4" })
                 {
-                    saleInformation.SetSalePeriod(result.Groups["StartDate"].Value, result.Groups["EndDate"].Value);
+                    var elements = doc.QuerySelectorAll(tag);
+
+                    foreach (var element in elements)
+                    {
+                        // 例：期間限定：8/18（金）～8/31（木）
+                        var result = Regex.Match(element.InnerHtml, @"期間限定：(?<StartDate>.*?)（.*）～(?<EndDate>.*?)（.*）");
+
+                        if (result.Success == true)
+                        {
+                            saleInformation.SetSalePeriod(result.Groups["StartDate"].Value, result.Groups["EndDate"].Value);
+                            return true;
+                        }
+                    }
                 }
 
-                return result.Success;
+                return false;
             }
         }
 
