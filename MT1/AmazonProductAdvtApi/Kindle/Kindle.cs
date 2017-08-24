@@ -470,6 +470,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             {
                 saleInformation.EndDate = DateTime.Parse(endDate);
 
+                if (saleInformation.Error == true) return;
+
                 if (saleInformation.EndDate < DateTime.Now)
                 {
                     saleInformation.SaleFinished = true;
@@ -484,6 +486,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             // セールページをスクレイピングしてセール期間を判別
             if (await ExtractSalePeriod(saleInformation) == true)
             {
+                if (saleInformation.Error == true) return;
+
                 if (saleInformation.EndDate < DateTime.Now)
                 {
                     saleInformation.SaleFinished = true;
