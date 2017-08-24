@@ -439,15 +439,20 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             更新日時：{LastUpdate}
             </p>";
 
-            content += "<ul>";
+            int count = 0;
+            content += @"<table>
+            <tr><th>No</th><th>開催期間</th><th>タイトル</th><th>開催</th><th>終了</th></tr>";
             foreach (var saleInformation in saleInformations)
             {
-                content += $@"<li>
-                <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>
-                {saleInformation.NodeId} {saleInformation.Name}</a> （{saleInformation.GetSalePeriod()}）
-                </li>";
+                content += $@"<tr>
+                <td>{count++}</td>
+                <td>{saleInformation.GetSalePeriod()}</td>
+                <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>{saleInformation.Name}</a></td>
+                <td>{saleInformation.SaleStarted}</td>
+                <td>{saleInformation.SaleFinished}</td>
+                </tr>";
             }
-            content += "</ul>";
+            content += "</table>";
 
             await blogger.UpdatePageAsync(pageId, content);
         }
