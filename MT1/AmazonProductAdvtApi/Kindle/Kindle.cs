@@ -219,7 +219,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             try
             {
                 var error = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:Request/ns:Errors/ns:Error/ns:Code", xmlNsManager).InnerText;
-                Console.WriteLine(error);
+                Console.WriteLine("エラー情報あり：" + error);
                 saleInformation.Error = true;
             }
             catch (Exception e)
@@ -319,7 +319,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <returns></returns>
         Article CreateArticle(SaleInformation saleInformation)
         {
-            Article article = new Article();
+            var article = new Article();
 
             article.title = saleInformation.Name;
 
@@ -440,14 +440,15 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             </p>";
 
             int count = 0;
-            content += @"<table>
-            <tr><th>No</th><th>開催期間</th><th>タイトル</th><th>開催</th><th>終了</th></tr>";
+            content += @"<table class=""marked"">
+            <tr><th>No</th><th>開催期間</th><th>タイトル</th><th>エラー</td><th>開催</th><th>終了</th></tr>";
             foreach (var saleInformation in saleInformations)
             {
                 content += $@"<tr>
                 <td>{count++}</td>
                 <td>{saleInformation.GetSalePeriod()}</td>
                 <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>{saleInformation.Name}</a></td>
+                <td>{saleInformation.Error}</td>
                 <td>{saleInformation.SaleStarted}</td>
                 <td>{saleInformation.SaleFinished}</td>
                 </tr>";
