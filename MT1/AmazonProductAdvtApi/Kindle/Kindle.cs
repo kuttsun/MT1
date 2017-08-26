@@ -440,7 +440,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             </p>";
 
             int count = 0;
-            content += @"<table class=""marked"">
+            content += @"<div class=""table-responsive"">
+            <table class=""table"">
             <tr><th>No</th><th>開催期間</th><th>タイトル</th><th>エラー</td><th>開催</th><th>終了</th></tr>";
             foreach (var saleInformation in saleInformations)
             {
@@ -453,7 +454,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 <td>{saleInformation.SaleFinished}</td>
                 </tr>";
             }
-            content += "</table>";
+            content += "</table></div>";
 
             await blogger.UpdatePageAsync(pageId, content);
         }
