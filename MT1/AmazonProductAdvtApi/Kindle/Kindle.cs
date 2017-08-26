@@ -319,23 +319,34 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <returns></returns>
         Article CreateArticle(SaleInformation saleInformation)
         {
-            var article = new Article();
-
-            article.title = saleInformation.Name;
+            var article = new Article() { title = saleInformation.Name };
 
             article.content += $@"<p>
             対象は{saleInformation.TotalResults}冊。<br>
             <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>。
             </p>";
 
+            // Bootstrap のグリッドシステムを使って配置する
+            // スマホでは２列で、タブレット以上では４列で表示する
+            int colMax = 4;
+            article.content += "\n<div class=\"container-fluid\">\n";
+            int count = 0;
             foreach (var item in saleInformation.Items)
             {
-                article.content += $@"<p>
-            <a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a>
-            <a href='{item.DetailPageUrl}' target='_href'>{item.Title}</a>
-            {item.Asin} {item.PublicationDate}<br>{item.Content}
-            </p>";
+                // ４列ごとに row で括る
+                if (count % colMax == 0) article.content += "<div class=\"row\">\n";
+                article.content += $@"
+                <div class=""col-xs-6 col-sm-3 col-md-3 col-lg-3"">
+                <a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a><br>
+                <a href='{item.DetailPageUrl}' target='_href'>{item.Title}</a>
+                </div>";
+                article.content += "\n";
+                if (count % colMax == colMax - 1) article.content += "</div>\n";
+                count++;
             }
+            // アイテム数が４の倍数でない場合、最後の row が閉じられていないのでここで閉じる
+            if (count % colMax != 0) article.content += "</div>\n";
+            article.content += "</div>\n";
 
             // タイトルからラベルを抽出
             article.labels = ExtractLabels(article.title);
