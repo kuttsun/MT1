@@ -54,6 +54,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <param name="args"></param>
         public async void GetSaleInformations(object args)
         {
+            Console.WriteLine("----- Begin -----");
+
             try
             {
                 // セールの一覧を取得
@@ -76,7 +78,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
 
                     // デバッグ用に指定回数だけ実行する
-                    if (count >= 50) break;
+                    if (count >= 10) break;
                 }
 
                 SerializeMyself(saleInformationsXml);
@@ -88,6 +90,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             {
                 Console.WriteLine(e.Message);
             }
+
+            Console.WriteLine("----- End -----");
         }
 
         /// <summary>

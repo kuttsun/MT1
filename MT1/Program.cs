@@ -14,7 +14,7 @@ namespace MT1
             // 文字化け対策 http://kagasu.hatenablog.com/entry/2016/12/07/004813
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            Console.WriteLine("----- Begin -----");
+            Console.WriteLine("----- Program Start -----");
 
             Kindle kindle;
             var serializer = new XmlSerializer(typeof(Kindle));
@@ -31,9 +31,6 @@ namespace MT1
             }
             kindle.GetSaleInformations(null);
 
-            Console.WriteLine("Kindle 情報取得完了");
-
-            Console.WriteLine("----- End -----");
             Console.ReadKey();
         }
     }
