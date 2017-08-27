@@ -338,7 +338,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             foreach (var item in saleInformation.Items)
             {
                 // ４列ごとに row で括る
-                if (count % colMax == 0) article.content += "<div class=\"row\">\n";
+                if (count % colMax == 0) article.content += "<div class=\"row flex\">\n";
                 article.content += $@"
                 <div class=""col-xs-6 col-sm-3 col-md-3 col-lg-3"">
                 <a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a><br>
