@@ -228,7 +228,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("エラー情報なし：" + e.Message);
                 saleInformation.Error = false;
             }
 
@@ -252,9 +252,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
                 //ItemLookUp(node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText);
             }
-            Console.WriteLine($"商品情報取得完了({saleInformation.Items.Count()}件)");
 
-            Console.WriteLine($"{saleInformation.NodeId} の商品情報取得完了");
+            Console.WriteLine($"{saleInformation.NodeId} の商品情報取得完了({saleInformation.Items.Count()}件)");
 
             return true;
         }
@@ -444,6 +443,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
         }
 
+        /// <summary>
+        /// ページを更新する
+        /// </summary>
+        /// <returns></returns>
         async Task UpdatePageAsync()
         {
             string content = $@"<p>
