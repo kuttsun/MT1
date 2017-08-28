@@ -112,12 +112,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <param name="nodeId">基準となるノードID</param>
         async Task BrowseNodeLookupAsync(string browseNodeId)
         {
-            IDictionary<string, string> request = new Dictionary<string, String>();
-            request["Service"] = service;
-            request["Version"] = apiVersion;
-            request["Operation"] = "BrowseNodeLookup";
-            request["SearchIndex"] = "KindleStore";
-            request["BrowseNodeId"] = browseNodeId;
+            IDictionary<string, string> request = new Dictionary<string, String>
+            {
+                ["Service"] = service,
+                ["Version"] = apiVersion,
+                ["Operation"] = "BrowseNodeLookup",
+                ["SearchIndex"] = "KindleStore",
+                ["BrowseNodeId"] = browseNodeId
+            };
 
             Console.WriteLine($"現在の件数:{saleInformations.Count()}件");
             Console.WriteLine($"セール情報一覧取得開始");
@@ -198,13 +200,15 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             await Task.Delay(2000);
 
-            IDictionary<string, string> request = new Dictionary<string, String>();
-            request["Service"] = service;
-            request["Version"] = apiVersion;
-            request["Operation"] = "ItemSearch";
-            request["SearchIndex"] = "KindleStore";
-            request["ResponseGroup"] = "Medium";
-            request["BrowseNode"] = saleInformation.NodeId;
+            IDictionary<string, string> request = new Dictionary<string, String>
+            {
+                ["Service"] = service,
+                ["Version"] = apiVersion,
+                ["Operation"] = "ItemSearch",
+                ["SearchIndex"] = "KindleStore",
+                ["ResponseGroup"] = "Medium",
+                ["BrowseNode"] = saleInformation.NodeId
+            };
 
             Console.WriteLine($"\n{saleInformation.NodeId} の商品情報取得開始");
 
@@ -265,13 +269,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemLookup.html
         async Task ItemLookUpAsync(string asin)
         {
-            IDictionary<string, string> request = new Dictionary<string, String>();
-            request["Service"] = service;
-            request["Version"] = apiVersion;
-            request["Operation"] = "ItemLookup";
-            request["IdType"] = "ASIN";
-            request["ItemId"] = asin;
-            //request["RelationshipType"] = "Episode";
+            IDictionary<string, string> request = new Dictionary<string, String>
+            {
+                ["Service"] = service,
+                ["Version"] = apiVersion,
+                ["Operation"] = "ItemLookup",
+                ["IdType"] = "ASIN",
+                ["ItemId"] = asin
+            };
 
             Console.WriteLine($"ASIN {asin} の詳細取得開始");
 
@@ -396,7 +401,6 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// http://kuroeveryday.blogspot.jp/2014/10/regex.html
         public string ExtractEndDate(string title)
         {
-            //var result = Regex.Match(title, ".*\\((?<EndDate>.*?)まで\\).*");
             var result = Regex.Match(title, @".*(\(|（)(?<EndDate>.*?)まで(\)|）).*");
 
             if (result.Success == true)
