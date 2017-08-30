@@ -67,8 +67,26 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 int count = 0;
                 foreach (var saleInformation in saleInformations)
                 {
+                    await Task.Delay(2000);
 
-                    if (await ItemSearchAsync(saleInformation) == true)
+                    if (saleInformation.SaleFinished == true)
+                    {
+                        Console.WriteLine($"{saleInformation.NodeId} は既にセール終了");
+                        continue;
+                    }
+                    if (saleInformation.PostInformation != null)
+                    {
+                        Console.WriteLine($"{saleInformation.NodeId} は既に投稿済み");
+
+                        await CheckSalePeriod(saleInformation);
+
+                        // 終了した場合はタイトルを終了済みにする
+                        // UpdateArticle
+                        continue;
+                    }
+
+                    Console.WriteLine($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
+                    if (await ItemSearchAllAsync(saleInformation) == true)
                     {
                         await CheckSalePeriod(saleInformation);
 
@@ -186,20 +204,43 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         }
 
         /// <summary>
-        /// 個別に情報を取得する
+        /// 全ページのアイテム情報を取得する
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
-        async Task<bool> ItemSearchAsync(SaleInformation saleInformation)
+        async Task<bool> ItemSearchAllAsync(SaleInformation saleInformation)
         {
-            if (saleInformation.PostInformation != null)
+            int page = 0;
+            bool result = false;
+
+            do
             {
-                Console.WriteLine($"{saleInformation.NodeId} は既に投稿済み");
-                return false;
-            }
+                await Task.Delay(2000);
+                page++;
+                result = await ItemSearchAsync(saleInformation, page);
+                if (result == false)
+                {
+                    break;
+                }
 
-            await Task.Delay(2000);
+                // 残りページなし
+                if ((int.Parse(saleInformation.TotalResults) - page * 10) <= 0)
+                {
+                    break;
+                }
 
+                // AWS の仕様上、10ページまでしか取得できない
+            } while (page < 10);
+
+            return result;
+        }
+        /// <summary>
+        /// 指定したページのアイテム情報を取得する
+        /// </summary>
+        /// <param name="saleInformation"></param>
+        /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
+        async Task<bool> ItemSearchAsync(SaleInformation saleInformation, int page)
+        {
             IDictionary<string, string> request = new Dictionary<string, String>
             {
                 ["Service"] = service,
@@ -207,10 +248,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["Operation"] = "ItemSearch",
                 ["SearchIndex"] = "KindleStore",
                 ["ResponseGroup"] = "Medium",
-                ["BrowseNode"] = saleInformation.NodeId
+                ["BrowseNode"] = saleInformation.NodeId,
+                ["ItemPage"] = page.ToString()
             };
 
-            Console.WriteLine($"\n{saleInformation.NodeId} の商品情報取得開始");
+            Console.WriteLine($"商品情報取得開始({page}ページ目)");
 
             // リクエストを送信して xml を取得
             var result = await GetXmlAsync(request);
@@ -232,32 +274,51 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                Console.WriteLine("エラー情報なし：" + e.Message);
+                //Console.WriteLine("エラー情報なし：" + e.Message);
                 saleInformation.Error = false;
             }
 
-            saleInformation.TotalResults = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:TotalResults", xmlNsManager).InnerText;
-
-            // 商品情報を取得
-            XmlNodeList nodeList = doc.SelectNodes("ns:ItemSearchResponse/ns:Items/ns:Item", xmlNsManager);
-            saleInformation.Items = new List<ItemDetail>();
-            foreach (XmlNode node in nodeList)
+            try
             {
-                saleInformation.Items.Add(new ItemDetail()
-                {
-                    Title = node.SelectSingleNode("ns:ItemAttributes/ns:Title", xmlNsManager).InnerText,
-                    PublicationDate = node.SelectSingleNode("ns:ItemAttributes/ns:PublicationDate", xmlNsManager)?.InnerText,
-                    Content = node.SelectSingleNode("ns:EditorialReviews/ns:EditorialReview/ns:Content", xmlNsManager)?.InnerText,
-                    Asin = node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText,
-                    DetailPageUrl = node.SelectSingleNode("ns:DetailPageURL", xmlNsManager).InnerText,
-                    MediumImageUrl = node.SelectSingleNode("ns:MediumImage/ns:URL", xmlNsManager).InnerText,
-                    LargeImageUrl = node.SelectSingleNode("ns:LargeImage/ns:URL", xmlNsManager).InnerText
-                });
-
-                //ItemLookUp(node.SelectSingleNode("ns:ASIN", xmlNsManager).InnerText);
+                saleInformation.TotalResults = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:TotalResults", xmlNsManager).InnerText;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("TotalResults取得不可：" + e.Message);
             }
 
-            Console.WriteLine($"{saleInformation.NodeId} の商品情報取得完了({saleInformation.Items.Count()}件)");
+            // 商品情報を取得
+            try
+            {
+                XmlNodeList nodeList = doc.SelectNodes("ns:ItemSearchResponse/ns:Items/ns:Item", xmlNsManager);
+
+                foreach (XmlNode node in nodeList)
+                {
+                    try
+                    {
+                        saleInformation.Items.Add(new ItemDetail()
+                        {
+                            Title = node.SelectSingleNode("ns:ItemAttributes/ns:Title", xmlNsManager)?.InnerText,
+                            PublicationDate = node.SelectSingleNode("ns:ItemAttributes/ns:PublicationDate", xmlNsManager)?.InnerText,
+                            Content = node.SelectSingleNode("ns:EditorialReviews/ns:EditorialReview/ns:Content", xmlNsManager)?.InnerText,
+                            Asin = node.SelectSingleNode("ns:ASIN", xmlNsManager)?.InnerText,
+                            DetailPageUrl = node.SelectSingleNode("ns:DetailPageURL", xmlNsManager)?.InnerText,
+                            MediumImageUrl = node.SelectSingleNode("ns:MediumImage/ns:URL", xmlNsManager)?.InnerText,
+                            LargeImageUrl = node.SelectSingleNode("ns:LargeImage/ns:URL", xmlNsManager)?.InnerText
+                        });
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("nodeListなし：" + e.Message);
+            }
+
+            Console.WriteLine($"商品情報取得完了({page}ページ目、{saleInformation.Items.Count()}/{saleInformation.TotalResults}件)");
 
             return true;
         }
