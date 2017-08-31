@@ -376,10 +376,17 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         async Task UpdateArticleAsync(SaleInformation saleInformation)
         {
+            try
+            {
 
-            await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
+                await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
 
-            Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+                Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         /// <summary>

@@ -106,7 +106,15 @@ namespace MT1.GoogleApi
             var service = await GetServiceAsync();
 
             // 現在のエントリを取得して更新する
-            var newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
+            Post newPost;
+            try
+            {
+                newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
             newPost.Title = article.title;
             newPost.Content = article.content;
             if (article.labels.Count > 0)
