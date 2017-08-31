@@ -272,7 +272,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 Console.WriteLine("エラー情報あり：" + error);
                 saleInformation.Error = true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Console.WriteLine("エラー情報なし：" + e.Message);
                 saleInformation.Error = false;
