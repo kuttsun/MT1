@@ -21,7 +21,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             public bool SaleStarted = false;
             // セールが終了したかどうか
             public bool SaleFinished = false;
-            public string TotalResults = null;
+            public int TotalResults = 0;
             public List<ItemDetail> Items = new List<ItemDetail>();
             public PostInformation PostInformation = null;
 

@@ -96,7 +96,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
 
                     // デバッグ用に指定回数だけ実行する
-                    if (count >= 10) break;
+                    if (count >= 5) break;
                 }
 
                 SerializeMyself(saleInformationsXml);
@@ -224,7 +224,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 }
 
                 // 残りページなし
-                if ((int.Parse(saleInformation.TotalResults) - page * 10) <= 0)
+                if ((saleInformation.TotalResults - page * 10) <= 0)
                 {
                     break;
                 }
@@ -280,7 +280,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             try
             {
-                saleInformation.TotalResults = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:TotalResults", xmlNsManager).InnerText;
+                var totalResults = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:TotalResults", xmlNsManager).InnerText;
+                saleInformation.TotalResults = int.Parse(totalResults);
             }
             catch (Exception e)
             {
@@ -396,6 +397,9 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 article.title = "【終了】" + article.title;
             }
 
+            // タイトルからラベルを抽出
+            article.labels = ExtractLabels(article.title);
+
             article.content += $@"<p>
             対象は{saleInformation.TotalResults}冊。<br>
             <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>。
@@ -423,8 +427,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             if (count % colMax != 0) article.content += "</div>\n";
             article.content += "</div>\n";
 
-            // タイトルからラベルを抽出
-            article.labels = ExtractLabels(article.title);
+            if (saleInformation.TotalResults > 100)
+            {
+                article.content += $@"<p><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>もっと見る</a></p>";
+            }
 
             return article;
         }
