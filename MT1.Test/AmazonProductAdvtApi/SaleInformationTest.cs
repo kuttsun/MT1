@@ -3,7 +3,7 @@ using Xunit;
 
 using MT1.AmazonProductAdvtApi.Kindle;
 
-namespace MT1.Test
+namespace MT1.Tests
 {
     public class SaleInformationTest
     {
