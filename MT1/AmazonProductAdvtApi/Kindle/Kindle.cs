@@ -81,7 +81,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         await CheckSalePeriod(saleInformation);
 
                         // 終了した場合はタイトルを終了済みにする
-                        // UpdateArticle
+                        await UpdateArticleAsync(saleInformation);
                         continue;
                     }
 
@@ -307,7 +307,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                             LargeImageUrl = node.SelectSingleNode("ns:LargeImage/ns:URL", xmlNsManager)?.InnerText
                         });
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                     }
@@ -389,6 +389,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         Article CreateArticle(SaleInformation saleInformation)
         {
             var article = new Article() { title = saleInformation.Name };
+
+            // 既に終了済みだったらタイトルに記載する
+            if (saleInformation.SaleFinished == true)
+            {
+                article.title = "【終了】" + article.title;
+            }
 
             article.content += $@"<p>
             対象は{saleInformation.TotalResults}冊。<br>
