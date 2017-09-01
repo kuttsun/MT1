@@ -412,6 +412,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>。
             </p>";
 
+            article.content += @"<!--more-->";
+
             // Bootstrap のグリッドシステムを使って配置する
             // スマホでは２列で、タブレット以上では４列で表示する
             int colMax = 4;
