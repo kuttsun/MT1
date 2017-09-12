@@ -6,62 +6,59 @@ using MT1.GoogleApi;
 
 namespace MT1.AmazonProductAdvtApi.Kindle
 {
-    partial class Kindle
+    public class SaleInformation
     {
-        public class SaleInformation
+        public string NodeId = null;
+        public string Name = null;
+        public bool Error = false;
+        // セール開始日
+        public DateTime StartDate;
+        // セール終了日
+        public DateTime EndDate;
+        // セールが開始したかどうか
+        public bool SaleStarted = false;
+        // セールが終了したかどうか
+        public bool SaleFinished = false;
+        public int TotalResults = 0;
+        public List<ItemDetail> Items = new List<ItemDetail>();
+        public PostInformation PostInformation = null;
+
+        public void SetSalePeriod(string StartDate, string EndDate)
         {
-            public string NodeId = null;
-            public string Name = null;
-            public bool Error = false;
-            // セール開始日
-            public DateTime StartDate;
-            // セール終了日
-            public DateTime EndDate;
-            // セールが開始したかどうか
-            public bool SaleStarted = false;
-            // セールが終了したかどうか
-            public bool SaleFinished = false;
-            public int TotalResults = 0;
-            public List<ItemDetail> Items = new List<ItemDetail>();
-            public PostInformation PostInformation = null;
+            // /で分割して配列に格納する
+            var StartDates = StartDate.Split('/');
+            var EndDates = EndDate.Split('/');
 
-            public void SetSalePeriod(string StartDate, string EndDate)
+            this.StartDate = new DateTime(DateTime.Now.Year, int.Parse(StartDates[0]), int.Parse(StartDates[1]));
+            this.EndDate = new DateTime(DateTime.Now.Year, int.Parse(EndDates[0]), int.Parse(EndDates[1]));
+
+            // 開始日が終了日より未来の場合は年をまたいでいると判断し、終了日の年を進める
+            if (this.StartDate > this.EndDate)
             {
-                // /で分割して配列に格納する
-                var StartDates = StartDate.Split('/');
-                var EndDates = EndDate.Split('/');
+                this.EndDate = this.EndDate.AddYears(1);
+            }
+        }
 
-                this.StartDate = new DateTime(DateTime.Now.Year, int.Parse(StartDates[0]), int.Parse(StartDates[1]));
-                this.EndDate = new DateTime(DateTime.Now.Year, int.Parse(EndDates[0]), int.Parse(EndDates[1]));
+        public string GetSalePeriod()
+        {
+            if (SaleFinished == true)
+            {
+                return "終了";
+            }
 
-                // 開始日が終了日より未来の場合は年をまたいでいると判断し、終了日の年を進める
-                if (this.StartDate > this.EndDate)
+            if (SaleStarted == true && SaleFinished == false)
+            {
+                if (StartDate == DateTime.MinValue)
                 {
-                    this.EndDate = this.EndDate.AddYears(1);
+                    return $"{EndDate.ToString("M/d")}まで";
+                }
+                else
+                {
+                    return $"{StartDate.ToString("M/d")}～{EndDate.ToString("M/d")}";
                 }
             }
 
-            public string GetSalePeriod()
-            {
-                if (SaleFinished == true)
-                {
-                    return "終了";
-                }
-
-                if (SaleStarted == true && SaleFinished == false)
-                {
-                    if (StartDate == DateTime.MinValue)
-                    {
-                        return $"{EndDate.ToString("M/d")}まで";
-                    }
-                    else
-                    {
-                        return $"{StartDate.ToString("M/d")}～{EndDate.ToString("M/d")}";
-                    }
-                }
-
-                return "期間不明";
-            }
+            return "期間不明";
         }
     }
 }

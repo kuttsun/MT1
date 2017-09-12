@@ -12,6 +12,10 @@ using System.Threading;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
+
 using AngleSharp.Parser.Html;
 
 using MT1.GoogleApi;
@@ -21,38 +25,49 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 {
     public partial class Kindle : Amazon
     {
-        [XmlIgnore]
-        const string nodeListXml = "KindleNodeList.xml";
-        [XmlIgnore]
-        const string saleInformationsXml = "KindleSaleInformations.xml";
-
-        [XmlIgnore]
         Blogger blogger;
-        [XmlIgnore]
-        string pageId = "5107391980448290602";
-        [XmlIgnore]
+
         Timer timer;
 
-        public string LastUpdate = null;
+        KindleData data;
 
-        public List<SaleInformation> saleInformations = new List<SaleInformation>();
+        ILogger logger;
+        KindleOptions options;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public Kindle()
+        public Kindle(ILogger<Kindle> logger, IOptions<KindleOptions> kindleOptions, IOptions<AmazonOptions> amazonOptions) : base(amazonOptions)
         {
-            blogger = new Blogger(Environment.GetEnvironmentVariable("BLOGGER_ID_KINDLE"));
+            this.logger = logger;
+            options = kindleOptions.Value;
+
+            blogger = new Blogger(options.BlogId);
 
             // タイマーの生成(第３引数の時間経過後から第４引数の時間間隔でコールされる)
             //timer = new Timer(new TimerCallback(GetSaleInformations), null, 60 * 1000, 300 * 1000);
+
+            var serializer = new XmlSerializer(typeof(KindleData));
+            try
+            {
+                using (var fs = new FileStream(options.Data, FileMode.Open))
+                {
+                    data = (KindleData)serializer.Deserialize(fs);
+                }
+                logger.LogInformation("デシリアライズ完了");
+            }
+            catch
+            {
+                logger.LogError("デシリアライズ失敗");
+                data = new KindleData();
+            }
         }
 
         /// <summary>
-        /// コールバック
+        /// 処理の開始
         /// </summary>
         /// <param name="args"></param>
-        public async void GetSaleInformations(object args)
+        public async void Run()
         {
             Console.WriteLine("----- Begin -----");
 
@@ -61,11 +76,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 // セールの一覧を取得
                 await BrowseNodeLookupAsync("2275277051");
 
-                LastUpdate = DateTime.Now.ToString("yyyy/MM/dd (ddd) HH:mm:ss");
+                data.LastUpdate = DateTime.Now.ToString("yyyy/MM/dd (ddd) HH:mm:ss");
 
                 // 個々の URL を取得
                 int count = 0;
-                foreach (var saleInformation in saleInformations)
+                foreach (var saleInformation in data.SaleInformations)
                 {
                     await Task.Delay(2000);
 
@@ -93,13 +108,13 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         await PostToBlogAsync(saleInformation);
                     }
                     count++;
-                    Console.WriteLine($"[{count}/{saleInformations.Count()}件完了]");
+                    Console.WriteLine($"[{count}/{data.SaleInformations.Count()}件完了]");
 
                     // デバッグ用に指定回数だけ実行する
                     if (count >= 5) break;
                 }
 
-                SerializeMyself(saleInformationsXml);
+                SerializeMyself(options.Data);
 
                 // セール一覧を更新
                 await UpdatePageAsync();
@@ -139,7 +154,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["BrowseNodeId"] = browseNodeId
             };
 
-            Console.WriteLine($"現在の件数:{saleInformations.Count()}件");
+            Console.WriteLine($"現在の件数:{data.SaleInformations.Count()}件");
             Console.WriteLine($"セール情報一覧取得開始");
 
             // リクエストを送信して xml を取得
@@ -149,7 +164,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
 
-            WriteXml(doc, nodeListXml);
+            WriteXml(doc, options.NodeList);
 
             // 名前空間の指定
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
@@ -171,34 +186,34 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             // 現在のリストの項目が最新のリスト中になければ古い情報と判断して削除する
             int deleteCount = 0;
-            foreach (var saleInformation in saleInformations)
+            foreach (var saleInformation in data.SaleInformations)
             {
                 var foundItem = newSaleInformations.Find(item => item.NodeId == saleInformation.NodeId);
 
                 if (foundItem == null)
                 {
-                    saleInformations.Remove(saleInformation);
+                    data.SaleInformations.Remove(saleInformation);
                     deleteCount++;
                 }
             }
-            Console.WriteLine($"{deleteCount}件の古いデータを削除(残り{saleInformations.Count()}件)");
+            Console.WriteLine($"{deleteCount}件の古いデータを削除(残り{data.SaleInformations.Count()}件)");
 
             // 最新のリストのうち、現在のリスト中にないものだけ現在のリストに新規に追加する
             int addCount = 0;
             foreach (var newSaleInformation in newSaleInformations)
             {
-                var foundItem = saleInformations.Find(item => item.NodeId == newSaleInformation.NodeId);
+                var foundItem = data.SaleInformations.Find(item => item.NodeId == newSaleInformation.NodeId);
 
                 if (foundItem == null)
                 {
-                    saleInformations.Add(newSaleInformation);
+                    data.SaleInformations.Add(newSaleInformation);
                     addCount++;
                 }
             }
-            Console.WriteLine($"{addCount}件の新規データを追加(計{saleInformations.Count()}件)");
+            Console.WriteLine($"{addCount}件の新規データを追加(計{data.SaleInformations.Count()}件)");
 
             // test用
-            saleInformations.Sort((a, b) => string.Compare(b.NodeId, a.NodeId));
+            data.SaleInformations.Sort((a, b) => string.Compare(b.NodeId, a.NodeId));
 
             // SortedSaleInformations = saleInfomations.OrderByDescending(x => x.nodeId);
         }
@@ -540,14 +555,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             この中にはまだセールを開始していないものや、既に終了したセールなど、セールではないものもありますのでご注意ください。
             </p>
             <p>
-            更新日時：{LastUpdate}
+            更新日時：{data.LastUpdate}
             </p>";
 
             int count = 0;
             content += @"<div class=""table-responsive"">
             <table class=""table"">
             <tr><th>No</th><th>開催期間</th><th>タイトル</th><th>エラー</td><th>開催</th><th>終了</th></tr>";
-            foreach (var saleInformation in saleInformations)
+            foreach (var saleInformation in data.SaleInformations)
             {
                 content += $@"<tr>
                 <td>{count++}</td>
@@ -560,7 +575,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             content += "</table></div>";
 
-            await blogger.UpdatePageAsync(pageId, content);
+            await blogger.UpdatePageAsync(options.PageId, content);
         }
 
         /// <summary>

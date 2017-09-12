@@ -8,6 +8,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.IO;
 
+using Microsoft.Extensions.Options;
+
 namespace MT1.AmazonProductAdvtApi
 {
     public class Amazon
@@ -17,22 +19,20 @@ namespace MT1.AmazonProductAdvtApi
         protected static readonly string service = "AWSECommerceService";
         protected static readonly string apiVersion = "2011-08-01";
         protected static readonly string ns = "http://webservices.amazon.com/AWSECommerceService/2011-08-01";
-        protected string AssociateTag { get; } = null;
 
         SignedRequestHelper helper;
+        AmazonOptions options;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public Amazon()
+        public Amazon(IOptions<AmazonOptions> amazonOptions)
         {
-            string awsAccessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
-            string awsSecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_KEY");
+            options = amazonOptions.Value;
+
             string destination = "ecs.amazonaws.jp";
 
-            AssociateTag = Environment.GetEnvironmentVariable("ASSOCIATE_TAG");
-
-            helper = new SignedRequestHelper(awsAccessKeyId, awsSecretKey, destination, AssociateTag);
+            helper = new SignedRequestHelper(options.AccessKeyId, options.SecretKey, destination, options.AssociateTag);
 
             // タイムアウトをセット
             client.Timeout = TimeSpan.FromSeconds(10.0);
@@ -111,7 +111,7 @@ namespace MT1.AmazonProductAdvtApi
         /// 参考：https://affiliate.amazon.co.jp/help/topic/t121/a1
         protected string GetAssociateLinkByBrowseNode(string node)
         {
-            return $"http://www.amazon.co.jp/b?ie=UTF8&node={node}&tag={AssociateTag}&linkCode=ure&creative=6339";
+            return $"http://www.amazon.co.jp/b?ie=UTF8&node={node}&tag={options.AssociateTag}&linkCode=ure&creative=6339";
         }
     }
 }
