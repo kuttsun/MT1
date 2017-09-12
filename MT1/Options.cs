@@ -18,7 +18,7 @@ namespace MT1
     {
         public string BlogId { get; set; }
         public string PageId { get; set; }
-        public string NodeList { get; set; }
-        public string Data { get; set; }
+        public string NodeListFile { get; set; }
+        public string DataFile { get; set; }
     }
 }
