@@ -114,7 +114,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     if (count >= 5) break;
                 }
 
-                SerializeMyself(options.Data);
+                SerializeData(options.Data);
 
                 // セール一覧を更新
                 await UpdatePageAsync();
@@ -127,15 +127,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             Console.WriteLine("----- End -----");
         }
 
-        /// <summary>
-        /// 自分自身をシリアライズする
-        /// </summary>
-        void SerializeMyself(string filePath)
+        void SerializeData(string filePath)
         {
-            var xmlSerializer = new XmlSerializer(typeof(Kindle));
+            var xmlSerializer = new XmlSerializer(typeof(KindleData));
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
-                xmlSerializer.Serialize(fileStream, this);
+                xmlSerializer.Serialize(fileStream, data);
             }
         }
 
