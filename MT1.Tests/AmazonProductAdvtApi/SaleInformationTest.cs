@@ -10,7 +10,7 @@ namespace MT1.Tests
         [Fact]
         public void SetSalePeriodTest()
         {
-            var saleInformation = new Kindle.SaleInformation();
+            var saleInformation = new SaleInformation();
 
             saleInformation.SetSalePeriod("8/18", "8/31");
             Assert.Equal("2017/08/18", saleInformation.StartDate.ToString("yyyy/MM/dd"));
@@ -24,7 +24,7 @@ namespace MT1.Tests
         [Fact]
         public void GetSalePeriodTest()
         {
-            var saleInformation = new Kindle.SaleInformation();
+            var saleInformation = new SaleInformation();
 
             saleInformation.SaleStarted = false;
             saleInformation.SaleFinished = false;

@@ -17,7 +17,7 @@ namespace MT1.Tests
             InlineData("特集・フェア", "【50%OFF】2017夏のビジネス・実用書フェア （7/27まで）")]
         public void ExtractTagsTest(string expected, string title)
         {
-            var kindle = new Kindle();
+            var kindle = new Kindle(null,null);
             Assert.True(kindle.ExtractLabels(title).Contains(expected));
         }
 
@@ -28,7 +28,7 @@ namespace MT1.Tests
             InlineData(null, "【50%ポイント還元】　SBクリエイティブキャンペーン")]
         public void ExtractEndDateTest(string expected, string title)
         {
-            var kindle = new Kindle();
+            var kindle = new Kindle(null,null);
             Assert.Equal(expected, kindle.ExtractEndDate(title));
         }
     }
