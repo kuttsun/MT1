@@ -27,8 +27,6 @@ namespace MT1.AmazonProductAdvtApi.Kindle
     {
         Blogger blogger;
 
-        Timer timer;
-
         KindleData data;
 
         ILogger logger;
@@ -43,9 +41,6 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             options = kindleOptions.Value;
 
             blogger = new Blogger(options.BlogId);
-
-            // タイマーの生成(第３引数の時間経過後から第４引数の時間間隔でコールされる)
-            //timer = new Timer(new TimerCallback(GetSaleInformations), null, 60 * 1000, 300 * 1000);
 
             var serializer = new XmlSerializer(typeof(KindleData));
             try
