@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.IO;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace MT1.AmazonProductAdvtApi
@@ -21,13 +22,15 @@ namespace MT1.AmazonProductAdvtApi
         protected static readonly string ns = "http://webservices.amazon.com/AWSECommerceService/2011-08-01";
 
         SignedRequestHelper helper;
+        ILogger logger;
         AmazonOptions options;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public Amazon(IOptions<AmazonOptions> amazonOptions)
+        public Amazon(ILogger<Amazon> logger, IOptions<AmazonOptions> amazonOptions)
         {
+            this.logger = logger;
             options = amazonOptions.Value;
 
             string destination = "ecs.amazonaws.jp";
@@ -59,22 +62,22 @@ namespace MT1.AmazonProductAdvtApi
                 catch (HttpRequestException e)
                 {
                     // 404エラーや、名前解決失敗など
-                    Console.WriteLine("\n例外発生!");
+                    var message = "例外発生!";
                     // InnerExceptionも含めて、再帰的に例外メッセージを表示する
                     Exception ex = e;
                     while (ex != null)
                     {
-                        Console.WriteLine(ex.Message);
+                        message += "\n" + ex.Message;
                         ex = ex.InnerException;
                     }
+                    logger.LogWarning(message);
 
                     //throw;
                 }
                 catch (TaskCanceledException e)
                 {
                     // タスクがキャンセルされたとき（一般的にタイムアウト）
-                    Console.WriteLine("\nタイムアウト!");
-                    Console.WriteLine(e.Message);
+                    logger.LogWarning("タイムアウト!\n" + e.Message);
 
                     // throw;
                 }
@@ -99,7 +102,7 @@ namespace MT1.AmazonProductAdvtApi
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                logger.LogError($"{outputFile} 出力失敗\n{e.Message}");
             }
         }
 

@@ -11,6 +11,8 @@ using Google.Apis.Blogger;
 using Google.Apis.Blogger.v3;
 using Google.Apis.Blogger.v3.Data;
 
+using Microsoft.Extensions.Logging;
+
 namespace MT1.GoogleApi
 {
     public class PostInformation
@@ -32,8 +34,11 @@ namespace MT1.GoogleApi
         UserCredential credential = null;
         BloggerService service = null;
 
-        public Blogger(string blogId)
+        ILogger logger;
+
+        public Blogger(ILogger logger, string blogId)
         {
+            this.logger = logger;
             this.blogId = blogId;
         }
 
@@ -137,10 +142,9 @@ namespace MT1.GoogleApi
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    logger.LogError("投稿失敗、リトライします\n" + e.Message);
                     await Task.Delay(timer);
                     timer *= 2;
-                    Console.WriteLine("投稿失敗、リトライします");
                 }
             }
         }

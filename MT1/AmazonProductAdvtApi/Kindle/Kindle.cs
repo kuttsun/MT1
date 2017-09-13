@@ -35,12 +35,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public Kindle(ILogger<Kindle> logger, IOptions<KindleOptions> kindleOptions, IOptions<AmazonOptions> amazonOptions) : base(amazonOptions)
+        public Kindle(ILogger<Kindle> logger, IOptions<KindleOptions> kindleOptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
         {
             this.logger = logger;
             options = kindleOptions.Value;
 
-            blogger = new Blogger(options.BlogId);
+            blogger = new Blogger(logger, options.BlogId);
 
             var serializer = new XmlSerializer(typeof(KindleData));
             try
@@ -64,7 +64,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <param name="args"></param>
         public async void Run()
         {
-            Console.WriteLine("----- Begin -----");
+            logger.LogInformation("----- Begin -----");
 
             try
             {
@@ -81,12 +81,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
                     if (saleInformation.SaleFinished == true)
                     {
-                        Console.WriteLine($"{saleInformation.NodeId} は既にセール終了");
+                        logger.LogInformation($"{saleInformation.NodeId} は既にセール終了");
                         continue;
                     }
                     if (saleInformation.PostInformation != null)
                     {
-                        Console.WriteLine($"{saleInformation.NodeId} は既に投稿済み");
+                        logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
 
                         await CheckSalePeriod(saleInformation);
 
@@ -95,7 +95,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         continue;
                     }
 
-                    Console.WriteLine($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
+                    logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
                     if (await ItemSearchAllAsync(saleInformation) == true)
                     {
                         await CheckSalePeriod(saleInformation);
@@ -103,7 +103,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         await PostToBlogAsync(saleInformation);
                     }
                     count++;
-                    Console.WriteLine($"[{count}/{data.SaleInformations.Count()}件完了]");
+                    logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件完了]");
 
                     // デバッグ用に指定回数だけ実行する
                     if (count >= 5) break;
@@ -116,10 +116,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                logger.LogError(e.Message);
             }
 
-            Console.WriteLine("----- End -----");
+            logger.LogInformation("----- End -----");
         }
 
         void SerializeData(string filePath)
@@ -146,8 +146,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["BrowseNodeId"] = browseNodeId
             };
 
-            Console.WriteLine($"現在の件数:{data.SaleInformations.Count()}件");
-            Console.WriteLine($"セール情報一覧取得開始");
+            logger.LogInformation($"現在の件数:{data.SaleInformations.Count()}件");
+            logger.LogInformation($"セール情報一覧取得開始");
 
             // リクエストを送信して xml を取得
             var result = await GetXmlAsync(request);
@@ -174,7 +174,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     Name = node.SelectSingleNode("ns:Name", xmlNsManager).InnerText
                 });
             }
-            Console.WriteLine($"セール情報一覧取得完了({newSaleInformations.Count()}件)");
+            logger.LogInformation($"セール情報一覧取得完了({newSaleInformations.Count()}件)");
 
             // 現在のリストの項目が最新のリスト中になければ古い情報と判断して削除する
             int deleteCount = 0;
@@ -188,7 +188,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     deleteCount++;
                 }
             }
-            Console.WriteLine($"{deleteCount}件の古いデータを削除(残り{data.SaleInformations.Count()}件)");
+            logger.LogInformation($"{deleteCount}件の古いデータを削除(残り{data.SaleInformations.Count()}件)");
 
             // 最新のリストのうち、現在のリスト中にないものだけ現在のリストに新規に追加する
             int addCount = 0;
@@ -202,7 +202,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     addCount++;
                 }
             }
-            Console.WriteLine($"{addCount}件の新規データを追加(計{data.SaleInformations.Count()}件)");
+            logger.LogInformation($"{addCount}件の新規データを追加(計{data.SaleInformations.Count()}件)");
 
             // test用
             data.SaleInformations.Sort((a, b) => string.Compare(b.NodeId, a.NodeId));
@@ -259,7 +259,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["ItemPage"] = page.ToString()
             };
 
-            Console.WriteLine($"商品情報取得開始({page}ページ目)");
+            logger.LogInformation($"商品情報取得開始({page}ページ目)");
 
             // リクエストを送信して xml を取得
             var result = await GetXmlAsync(request);
@@ -276,7 +276,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             try
             {
                 var error = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:Request/ns:Errors/ns:Error/ns:Code", xmlNsManager).InnerText;
-                Console.WriteLine("エラー情報あり：" + error);
+                logger.LogWarning("エラー情報あり：" + error);
                 saleInformation.Error = true;
             }
             catch (Exception)
@@ -292,7 +292,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                Console.WriteLine("TotalResults取得不可：" + e.Message);
+                logger.LogError("TotalResults取得不可：" + e.Message);
             }
 
             // 商品情報を取得
@@ -323,10 +323,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                Console.WriteLine("nodeListなし：" + e.Message);
+                logger.LogError("nodeListなし：" + e.Message);
             }
 
-            Console.WriteLine($"商品情報取得完了({page}ページ目、{saleInformation.Items.Count()}/{saleInformation.TotalResults}件)");
+            logger.LogInformation($"商品情報取得完了({page}ページ目、{saleInformation.Items.Count()}/{saleInformation.TotalResults}件)");
 
             return true;
         }
@@ -347,7 +347,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["ItemId"] = asin
             };
 
-            Console.WriteLine($"ASIN {asin} の詳細取得開始");
+            logger.LogInformation($"ASIN {asin} の詳細取得開始");
 
             // リクエストを送信して xml を取得
             var result = await GetXmlAsync(request);
@@ -360,7 +360,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
 
-            Console.WriteLine($"ASIN {asin} の詳細取得完了");
+            logger.LogInformation($"ASIN {asin} の詳細取得完了");
         }
 
         /// <summary>
@@ -375,7 +375,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             saleInformation.PostInformation = await blogger.PostAsync(CreateArticle(saleInformation));
 
-            Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+            logger.LogInformation($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
         }
 
         /// <summary>
@@ -385,14 +385,13 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         {
             try
             {
-
                 await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
 
-                Console.WriteLine($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+                logger.LogInformation($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                logger.LogError("記事の更新失敗\n" + e.Message);
             }
         }
 
