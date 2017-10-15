@@ -11,6 +11,8 @@ using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using MT1.Options;
+
 namespace MT1.AmazonProductAdvtApi
 {
     public class Amazon

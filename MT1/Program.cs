@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 
+using MT1.Options;
 using MT1.AmazonProductAdvtApi.Kindle;
 
 namespace MT1
@@ -27,9 +28,7 @@ namespace MT1
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var kindle = serviceProvider.GetService<Kindle>();
-
-            kindle.Run();
+            serviceProvider.GetService<Kindle>().Run();
 
             Console.ReadKey();
         }
@@ -71,7 +70,7 @@ namespace MT1
             // Configure<T> を使ってオプションを初期化する
             // IConfigurationRoot から GetSection 及び GetChildren で個々の設定の取り出しができる
             // ここでは "MyOptions" セクションの内容を MyOptions として登録
-            services.Configure<KindleOptions>(configuration.GetSection("KindleOptions"));
+            services.Configure<KindleOptions>(configuration.GetSection(nameof(KindleOptions)));
             services.Configure<AmazonOptions>(configuration.GetSection(nameof(AmazonOptions)));
 
             // Application を DI サービスコンテナに登録する

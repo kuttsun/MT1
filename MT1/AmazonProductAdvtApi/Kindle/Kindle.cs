@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 
 using AngleSharp.Parser.Html;
 
+using MT1.Options;
 using MT1.GoogleApi;
 using MT1.Extensions;
 
@@ -106,7 +107,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件完了]");
 
                     // デバッグ用に指定回数だけ実行する
-                    if (count >= 5) break;
+                    if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
                 }
 
                 SerializeData(options.DataFile);
