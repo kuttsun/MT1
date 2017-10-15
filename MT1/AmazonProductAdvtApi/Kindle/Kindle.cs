@@ -39,9 +39,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         public Kindle(ILogger<Kindle> logger, IOptions<KindleOptions> kindleOptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
         {
             this.logger = logger;
-            options = kindleOptions.Value;
+            options = kindleOptions?.Value;
 
-            blogger = new Blogger(logger, options.BlogId);
+            if (options != null)
+            {
+                blogger = new Blogger(logger, options.BlogId);
+            }
 
             var serializer = new XmlSerializer(typeof(KindleData));
             try

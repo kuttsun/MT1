@@ -1,4 +1,7 @@
 using System;
+
+using Microsoft.Extensions.Logging;
+
 using Xunit;
 
 using MT1.AmazonProductAdvtApi.Kindle;
@@ -7,6 +10,15 @@ namespace MT1.Tests
 {
     public class KindleTest
     {
+        ILoggerFactory loggerFactory;
+        ILogger<Kindle> logger;
+
+        public KindleTest()
+        {
+            loggerFactory = new LoggerFactory();
+            logger = loggerFactory.CreateLogger<Kindle>();
+        }
+
         [Theory,
             InlineData("割引", "【期間限定無料&amp;50%OFF】「夏☆電書」少女・女性コミックセール （8/24まで）"),
             InlineData("ポイント還元", "【50 % ポイント還元】エンタメから新本格まで講談社のミステリーフェア"),
@@ -17,7 +29,7 @@ namespace MT1.Tests
             InlineData("特集・フェア", "【50%OFF】2017夏のビジネス・実用書フェア （7/27まで）")]
         public void ExtractTagsTest(string expected, string title)
         {
-            var kindle = new Kindle(null,null);
+            var kindle = new Kindle(logger, null, null);
             Assert.True(kindle.ExtractLabels(title).Contains(expected));
         }
 
@@ -28,7 +40,7 @@ namespace MT1.Tests
             InlineData(null, "【50%ポイント還元】　SBクリエイティブキャンペーン")]
         public void ExtractEndDateTest(string expected, string title)
         {
-            var kindle = new Kindle(null,null);
+            var kindle = new Kindle(logger, null, null);
             Assert.Equal(expected, kindle.ExtractEndDate(title));
         }
     }

@@ -33,11 +33,14 @@ namespace MT1.AmazonProductAdvtApi
         public Amazon(ILogger<Amazon> logger, IOptions<AmazonOptions> amazonOptions)
         {
             this.logger = logger;
-            options = amazonOptions.Value;
+            options = amazonOptions?.Value;
 
             string destination = "ecs.amazonaws.jp";
 
-            helper = new SignedRequestHelper(options.AccessKeyId, options.SecretKey, destination, options.AssociateTag);
+            if (options != null)
+            {
+                helper = new SignedRequestHelper(options.AccessKeyId, options.SecretKey, destination, options.AssociateTag);
+            }
 
             // タイムアウトをセット
             client.Timeout = TimeSpan.FromSeconds(10.0);
