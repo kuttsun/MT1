@@ -420,7 +420,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             article.content += $@"<p>
             対象は{saleInformation.TotalResults}冊。<br>
-            <a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>セールページはこちら</a>。
+            Amazon のセールページは<a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>こちら</a>。
             </p>";
 
             article.content += @"<!--more-->";
