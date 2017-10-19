@@ -115,8 +115,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
                 SerializeData(options.DataFile);
 
-                // セール一覧を更新
-                await UpdatePageAsync();
+                // 開催中セール一覧のページを更新
+                await UpdateCurrentSaleListPageAsync();
+
+                // 最新セール一覧のページを更新
+                await UpdateLatestSaleListPageAsync();
             }
             catch (Exception e)
             {
@@ -540,10 +543,54 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         }
 
         /// <summary>
-        /// ページを更新する
+        /// 開催中セール一覧のページを更新する
         /// </summary>
         /// <returns></returns>
-        async Task UpdatePageAsync()
+        async Task UpdateCurrentSaleListPageAsync()
+        {
+            string content = $@"<p>
+            Amazon Product Advertising API から取得した、現在開催中の Kindle セールの一覧です。<br>
+            </p>
+            <p>
+            更新日時：{data.LastUpdate}
+            </p>";
+
+            int count = 0;
+            content += @"<div class=""table-responsive"">
+            <table class=""table"">
+            <tr><th>No.</th><th>開催期間</th><th>タイトル</th><th>Amazon</th></tr>";
+            foreach (var saleInformation in data.SaleInformations)
+            {
+                if ((saleInformation.Error == false) && (saleInformation.SaleStarted == true) && (saleInformation.SaleFinished == false))
+                {
+                    string entry;
+                    if (saleInformation.PostInformation == null)
+                    {
+                        entry = saleInformation.Name;
+                    }
+                    else
+                    {
+                        entry = $"<a href='{saleInformation.PostInformation.Url}' target='_blank'>{saleInformation.Name}</a>";
+                    }
+
+                    content += $@"<tr>
+                    <td>{count++}</td>
+                    <td>{saleInformation.GetSalePeriod()}</td>
+                    <td>{entry}</td>
+                    <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
+                    </tr>";
+                }
+            }
+            content += "</table></div>";
+
+            await blogger.UpdatePageAsync(options.CurrentSaleListPageId, content);
+        }
+
+        /// <summary>
+        /// 最新セール情報一覧のページを更新する
+        /// </summary>
+        /// <returns></returns>
+        async Task UpdateLatestSaleListPageAsync()
         {
             string content = $@"<p>
             Amazon Product Advertising API から取得した Kindle のセールページ一覧です。<br>
@@ -556,21 +603,30 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             int count = 0;
             content += @"<div class=""table-responsive"">
             <table class=""table"">
-            <tr><th>No</th><th>開催期間</th><th>タイトル</th><th>エラー</td><th>開催</th><th>終了</th></tr>";
+            <tr><th>No.</th><th>開催期間</th><th>タイトル</th><th>Amazon</th><th>ESF</th></tr>";
             foreach (var saleInformation in data.SaleInformations)
             {
+                string entry;
+                if (saleInformation.PostInformation == null)
+                {
+                    entry = saleInformation.Name;
+                }
+                else
+                {
+                    entry = $"<a href='{saleInformation.PostInformation.Url}' target='_blank'>{saleInformation.Name}</a>";
+                }
+
                 content += $@"<tr>
                 <td>{count++}</td>
                 <td>{saleInformation.GetSalePeriod()}</td>
-                <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>{saleInformation.Name}</a></td>
-                <td>{saleInformation.Error}</td>
-                <td>{saleInformation.SaleStarted}</td>
-                <td>{saleInformation.SaleFinished}</td>
+                <td>{entry}</td>
+                <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
+                <td>{(saleInformation.Error ? "1" : "0")}{(saleInformation.SaleStarted ? "1" : "0")}{(saleInformation.SaleFinished ? "1" : "0")}</td>
                 </tr>";
             }
             content += "</table></div>";
 
-            await blogger.UpdatePageAsync(options.PageId, content);
+            await blogger.UpdatePageAsync(options.LatestSaleListPageId, content);
         }
 
         /// <summary>

@@ -10,7 +10,8 @@ namespace MT1.Options
     public class KindleOptions
     {
         public string BlogId { get; set; }
-        public string PageId { get; set; }
+        public string CurrentSaleListPageId { get; set; }
+        public string LatestSaleListPageId { get; set; }
         public string NodeListFile { get; set; }
         public string DataFile { get; set; }
         public Debug Debug { get; set; }
