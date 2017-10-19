@@ -49,7 +49,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             var serializer = new XmlSerializer(typeof(KindleData));
             try
             {
-                using (var fs = new FileStream(options.DataFile, FileMode.Open))
+                using (var fs = new FileStream(options.GetDataFilePath(), FileMode.Open))
                 {
                     data = (KindleData)serializer.Deserialize(fs);
                 }
@@ -113,7 +113,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
                 }
 
-                SerializeData(options.DataFile);
+                SerializeData(options.GetDataFilePath());
 
                 // 開催中セール一覧のページを更新
                 await UpdateCurrentSaleListPageAsync();
@@ -163,7 +163,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
 
-            WriteXml(doc, options.NodeListFile);
+            WriteXml(doc, options.GetNodeListFilePath());
 
             // 名前空間の指定
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
@@ -274,7 +274,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
 
-            WriteXml(doc, $"{saleInformation.NodeId}.xml");
+            WriteXml(doc, $"{options.OutDir}{saleInformation.NodeId}.xml");
 
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
