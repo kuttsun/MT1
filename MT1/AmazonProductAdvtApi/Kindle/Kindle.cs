@@ -483,6 +483,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 }
             }
 
+            if (labels.Count == 0) labels.Add("その他");
+
             return labels;
         }
 
