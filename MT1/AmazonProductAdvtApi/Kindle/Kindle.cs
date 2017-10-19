@@ -211,10 +211,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             logger.LogInformation($"{addCount}件の新規データを追加(計{data.SaleInformations.Count()}件)");
 
-            // test用
-            data.SaleInformations.Sort((a, b) => string.Compare(b.NodeId, a.NodeId));
-
-            // SortedSaleInformations = saleInfomations.OrderByDescending(x => x.nodeId);
+            // ソート
+            data.SaleInformations.Sort((a, b) => string.Compare(a.NodeId, b.NodeId));
         }
 
         /// <summary>
