@@ -473,6 +473,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             pairs.Add("無料", new[] { "無料" });
             pairs.Add("均一", new[] { "均一" });
             pairs.Add("特集・フェア", new[] { "特集", "フェア" });
+            pairs.Add("セール", new[] { "セール" });
 
             foreach (var key in pairs.Keys)
             {
