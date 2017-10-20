@@ -26,7 +26,9 @@ namespace MT1.Tests
             InlineData("期間限定", "【期間限定無料お試し&amp;50%OFF】夏のTLまつり第1弾 山口ねね新刊発売記念フェア （8/10まで）"),
             InlineData("無料", "【期間限定無料お試し&amp;50%OFF】夏のTLまつり第1弾 山口ねね新刊発売記念フェア （8/10まで）"),
             InlineData("均一", "【200円均一】青年マンガ　1～5巻セール（8/3まで）"),
-            InlineData("特集・フェア", "【50%OFF】2017夏のビジネス・実用書フェア （7/27まで）")]
+            InlineData("特集・フェア", "【50%OFF】2017夏のビジネス・実用書フェア （7/27まで）"),
+            InlineData("セール", "Kindle本セール"),
+            InlineData("その他", "おすすめの本 ")]
         public void ExtractTagsTest(string expected, string title)
         {
             var kindle = new Kindle(logger, null, null);
