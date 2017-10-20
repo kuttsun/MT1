@@ -263,3 +263,5 @@ __pycache__/
 /MT1/*.json
 
 *.bak
+
+MT1/Data
