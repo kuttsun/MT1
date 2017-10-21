@@ -99,9 +99,8 @@ namespace MT1.GoogleApi
             catch (Exception e)
             {
                 Console.Write(e.Message);
+                throw;
             }
-
-            return null;
         }
 
         public async Task UpdatePostAsync(Article article, PostInformation postInformation)
@@ -116,8 +115,9 @@ namespace MT1.GoogleApi
             {
                 newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.Write(e.Message);
                 throw;
             }
             newPost.Title = article.title;
@@ -170,6 +170,7 @@ namespace MT1.GoogleApi
             catch (Exception e)
             {
                 Console.Write(e.Message);
+                throw;
             }
         }
     }
