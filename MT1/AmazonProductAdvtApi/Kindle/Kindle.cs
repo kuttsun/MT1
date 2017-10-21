@@ -114,11 +114,25 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 }
 
                 SerializeData(options.GetDataFilePath());
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+            }
 
-                // 開催中セール一覧のページを更新
+            // 開催中セール一覧のページを更新
+            try
+            {
                 await UpdateCurrentSaleListPageAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+            }
 
-                // 最新セール一覧のページを更新
+            // 最新セール一覧のページを更新
+            try
+            {
                 await UpdateLatestSaleListPageAsync();
             }
             catch (Exception e)
@@ -584,7 +598,15 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             content += "</table></div>";
 
-            await blogger.UpdatePageAsync(options.CurrentSaleListPageId, content);
+            try
+            {
+                await blogger.UpdatePageAsync(options.CurrentSaleListPageId, content);
+            }
+            catch
+            {
+                logger.LogError("開催中セール一覧のページ更新失敗");
+                throw;
+            }
         }
 
         /// <summary>
@@ -627,7 +649,15 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             content += "</table></div>";
 
-            await blogger.UpdatePageAsync(options.LatestSaleListPageId, content);
+            try
+            {
+                await blogger.UpdatePageAsync(options.LatestSaleListPageId, content);
+            }
+            catch
+            {
+                logger.LogError("最新セール情報一覧のページ更新失敗");
+                throw;
+            }
         }
 
         /// <summary>
