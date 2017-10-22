@@ -83,28 +83,50 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 {
                     await Task.Delay(2000);
 
+                    logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件開始]");
+
+                    // 既にセールが終了していないかどうかチェック
                     if (saleInformation.SaleFinished == true)
                     {
                         logger.LogInformation($"{saleInformation.NodeId} は既にセール終了");
-                        continue;
                     }
-                    if (saleInformation.PostInformation != null)
+                    else
                     {
-                        logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
+                        // ブログに投稿済みかどうかチェック
+                        if (saleInformation.PostInformation != null)
+                        {
+                            try
+                            {
+                                logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
 
-                        await CheckSalePeriod(saleInformation);
+                                await CheckSalePeriod(saleInformation);
 
-                        // 終了した場合はタイトルを終了済みにする
-                        await UpdateArticleAsync(saleInformation);
-                        continue;
-                    }
+                                // 終了した場合はタイトルを終了済みにする
+                                await UpdateArticleAsync(saleInformation);
+                            }
+                            catch(Exception e)
+                            {
+                                logger.LogError(e.Message);
+                            }
+                        }
+                        else
+                        {
+                            // まだ投稿していない場合は商品情報を取得して投稿する
+                            try
+                            {
+                                logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
+                                if (await ItemSearchAllAsync(saleInformation) == true)
+                                {
+                                    await CheckSalePeriod(saleInformation);
 
-                    logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
-                    if (await ItemSearchAllAsync(saleInformation) == true)
-                    {
-                        await CheckSalePeriod(saleInformation);
-
-                        await PostToBlogAsync(saleInformation);
+                                    await PostToBlogAsync(saleInformation);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                logger.LogError(e.Message);
+                            }
+                        }
                     }
                     count++;
                     logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件完了]");
@@ -392,9 +414,17 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 return;
             }
 
-            saleInformation.PostInformation = await blogger.PostAsync(CreateArticle(saleInformation));
+            try
+            {
+                saleInformation.PostInformation = await blogger.PostAsync(CreateArticle(saleInformation));
 
-            logger.LogInformation($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+                logger.LogInformation($"投稿完了\n{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+            }
+            catch(Exception e)
+            {
+                logger.LogError("投稿失敗");
+                throw;
+            }
         }
 
         /// <summary>
@@ -411,6 +441,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             catch (Exception e)
             {
                 logger.LogError("記事の更新失敗\n" + e.Message);
+                throw;
             }
         }
 
