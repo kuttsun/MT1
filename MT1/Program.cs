@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 
 using MT1.Options;
 using MT1.AmazonProductAdvtApi.Kindle;
+using MT1.AmazonProductAdvtApi.HRHM;
+
 
 namespace MT1
 {
@@ -28,7 +30,8 @@ namespace MT1
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            serviceProvider.GetService<Kindle>().Run();
+            //serviceProvider.GetService<Kindle>().Run();
+            serviceProvider.GetService<HRHM>().Run();
 
             Console.ReadKey();
         }
@@ -70,12 +73,14 @@ namespace MT1
             // Configure<T> を使ってオプションを初期化する
             // IConfigurationRoot から GetSection 及び GetChildren で個々の設定の取り出しができる
             // ここでは "MyOptions" セクションの内容を MyOptions として登録
-            services.Configure<KindleOptions>(configuration.GetSection(nameof(KindleOptions)));
             services.Configure<AmazonOptions>(configuration.GetSection(nameof(AmazonOptions)));
+            services.Configure<KindleOptions>(configuration.GetSection(nameof(KindleOptions)));
+            services.Configure<HRHMOptions>(configuration.GetSection(nameof(HRHMOptions)));
 
             // Application を DI サービスコンテナに登録する
             // AddTransient はインジェクション毎にインスタンスが生成される
             services.AddTransient<Kindle>();
+            services.AddTransient<HRHM>();
         }
     }
 }
