@@ -434,7 +434,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         {
             try
             {
-                await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
+                saleInformation.PostInformation = await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
 
                 logger.LogInformation($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
             }

@@ -18,6 +18,7 @@ namespace MT1.GoogleApi
     {
         public string Url;
         public string PostId;
+        public DateTime? Published;
     }
 
     public class Article
@@ -95,7 +96,7 @@ namespace MT1.GoogleApi
                 {
                     var updPost = service.Posts.Insert(newPost, blogId).Execute();
 
-                    return new PostInformation { Url = updPost.Url, PostId = updPost.Id };
+                    return new PostInformation { Url = updPost.Url, PostId = updPost.Id, Published = updPost.Published };
                 }
                 catch (Exception e)
                 {
@@ -124,15 +125,18 @@ namespace MT1.GoogleApi
             }
         }
 
-        public async Task UpdatePostAsync(Article article, PostInformation postInformation)
+        public async Task<PostInformation> UpdatePostAsync(Article article, PostInformation postInformation)
         {
             // Bloggerのインスタンスを取得
             var service = await GetServiceAsync();
 
-            var newPost = await GetPostAsync(postInformation.PostId);
-
-            newPost.Title = article.title;
-            newPost.Content = article.content;
+            var newPost = new Post
+            {
+                Title = article.title,
+                Content = article.content,
+                // 投稿日時は変更しない
+                Published = postInformation.Published
+            };
             if (article.labels.Count > 0)
             {
                 newPost.Labels = article.labels;
@@ -145,9 +149,7 @@ namespace MT1.GoogleApi
                     var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
 
                     // 更新後の情報を取得
-                    postInformation.Url = updPost.Url;
-                    postInformation.PostId = updPost.Id;
-                    break;
+                    return new PostInformation { Url = updPost.Url, PostId = updPost.Id, Published = updPost.Published };
                 }
                 catch (Exception e)
                 {
