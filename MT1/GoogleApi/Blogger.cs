@@ -4,10 +4,9 @@ using System.Text;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
-using Google.Apis.Util.Store;
-using Google.Apis.Blogger;
 using Google.Apis.Blogger.v3;
 using Google.Apis.Blogger.v3.Data;
 
@@ -30,6 +29,8 @@ namespace MT1.GoogleApi
 
     class Blogger
     {
+        // エラー時の待機時間（100秒）
+        readonly int requestLimitationMSec = 100 * 1000;
         string blogId;
         UserCredential credential = null;
         BloggerService service = null;
@@ -75,51 +76,56 @@ namespace MT1.GoogleApi
 
         public async Task<PostInformation> PostAsync(Article article)
         {
-            try
+            // Bloggerのインスタンスを取得
+            var service = await GetServiceAsync();
+
+            // Blogに新しいエントリを作成する
+            var newPost = new Post();
+            newPost.Title = article.title;
+            newPost.Content = article.content;
+            newPost.Published = DateTime.Now;
+            if (article.labels.Count > 0)
             {
-                // Bloggerのインスタンスを取得
-                var service = await GetServiceAsync();
-
-                // Blogの一覧を取得
-                //var blogList = service.Blogs.ListByUser("self").Execute();
-
-                // Blogに新しいエントリを作成する
-                var newPost = new Post();
-                newPost.Title = article.title;
-                newPost.Content = article.content;
-                newPost.Published = DateTime.Now;
-                if (article.labels.Count > 0)
-                {
-                    newPost.Labels = article.labels;
-                }
-                var updPost = service.Posts.Insert(newPost, blogId).Execute();
-
-                return new PostInformation { Url = updPost.Url, PostId = updPost.Id };
+                newPost.Labels = article.labels;
             }
-            catch (Exception e)
+
+            while (true)
             {
-                Console.Write(e.Message);
-                throw;
+                try
+                {
+                    var updPost = service.Posts.Insert(newPost, blogId).Execute();
+
+                    return new PostInformation { Url = updPost.Url, PostId = updPost.Id };
+                }
+                catch (Exception e)
+                {
+                    logger.LogError("新規投稿失敗、一定時間後リトライします\n" + e.Message);
+                    await Task.Delay(requestLimitationMSec);
+                }
             }
         }
 
         public async Task UpdatePostAsync(Article article, PostInformation postInformation)
         {
-
             // Bloggerのインスタンスを取得
             var service = await GetServiceAsync();
 
             // 現在のエントリを取得して更新する
             Post newPost;
-            try
+            while (true)
             {
-                newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
+                try
+                {
+                    newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    logger.LogError("投稿取得失敗、一定時間後リトライします\n" + e.Message);
+                    await Task.Delay(requestLimitationMSec);
+                }
             }
-            catch (Exception e)
-            {
-                Console.Write(e.Message);
-                throw;
-            }
+
             newPost.Title = article.title;
             newPost.Content = article.content;
             if (article.labels.Count > 0)
@@ -127,8 +133,6 @@ namespace MT1.GoogleApi
                 newPost.Labels = article.labels;
             }
 
-            // API がエラーを返した場合は指数バックオフによりリトライする
-            int timer = 1000;
             while (true)
             {
                 try
@@ -142,9 +146,8 @@ namespace MT1.GoogleApi
                 }
                 catch (Exception e)
                 {
-                    logger.LogError("投稿失敗、リトライします\n" + e.Message);
-                    await Task.Delay(timer);
-                    timer *= 2;
+                    logger.LogError("投稿更新失敗、一定時間後リトライします\n" + e.Message);
+                    await Task.Delay(requestLimitationMSec);
                 }
             }
         }
@@ -157,11 +160,12 @@ namespace MT1.GoogleApi
         /// <returns></returns>
         public async Task UpdatePageAsync(string pageId, string content)
         {
+            // Bloggerのインスタンスを取得
+            var service = await GetServiceAsync();
+
+            while(true)
             try
             {
-                // Bloggerのインスタンスを取得
-                var service = await GetServiceAsync();
-
                 // 現在のページを取得して更新する
                 var newPage = service.Pages.Get(blogId, pageId).Execute();
                 newPage.Content = content;
@@ -169,8 +173,8 @@ namespace MT1.GoogleApi
             }
             catch (Exception e)
             {
-                Console.Write(e.Message);
-                throw;
+                logger.LogError("ページ更新失敗、一定時間後リトライします\n" + e.Message);
+                await Task.Delay(requestLimitationMSec);
             }
         }
     }
