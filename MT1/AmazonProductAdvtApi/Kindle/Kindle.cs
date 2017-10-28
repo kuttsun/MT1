@@ -481,8 +481,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 if (count % colMax == 0) article.content += "<div class=\"row flex\">\n";
                 article.content += $@"
                 <div class=""col-xs-6 col-sm-3 col-md-3 col-lg-3"">
-                <a href='{item.DetailPageUrl}' target='_href'><img src='{item.MediumImageUrl}' /></a><br>
-                <a href='{item.DetailPageUrl}' target='_href'>{item.Title}</a>
+                <a href='{item.DetailPageUrl}' target='_blank'><img src='{item.MediumImageUrl}' /></a><br>
+                <a href='{item.DetailPageUrl}' target='_blank'>{item.Title}</a>
                 </div>";
                 article.content += "\n";
                 if (count % colMax == colMax - 1) article.content += "</div>\n";
