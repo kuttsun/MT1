@@ -105,19 +105,16 @@ namespace MT1.GoogleApi
             }
         }
 
-        public async Task UpdatePostAsync(Article article, PostInformation postInformation)
+        async Task<Post> GetPostAsync(string postId)
         {
             // Bloggerのインスタンスを取得
             var service = await GetServiceAsync();
 
-            // 現在のエントリを取得して更新する
-            Post newPost;
             while (true)
             {
                 try
                 {
-                    newPost = service.Posts.Get(blogId, postInformation.PostId).Execute();
-                    break;
+                    return service.Posts.Get(blogId, postId).Execute();
                 }
                 catch (Exception e)
                 {
@@ -125,6 +122,14 @@ namespace MT1.GoogleApi
                     await Task.Delay(requestLimitationMSec);
                 }
             }
+        }
+
+        public async Task UpdatePostAsync(Article article, PostInformation postInformation)
+        {
+            // Bloggerのインスタンスを取得
+            var service = await GetServiceAsync();
+
+            var newPost = await GetPostAsync(postInformation.PostId);
 
             newPost.Title = article.title;
             newPost.Content = article.content;
@@ -163,19 +168,19 @@ namespace MT1.GoogleApi
             // Bloggerのインスタンスを取得
             var service = await GetServiceAsync();
 
-            while(true)
-            try
-            {
-                // 現在のページを取得して更新する
-                var newPage = service.Pages.Get(blogId, pageId).Execute();
-                newPage.Content = content;
-                var updPage = service.Pages.Update(newPage, blogId, pageId).Execute();
-            }
-            catch (Exception e)
-            {
-                logger.LogError("ページ更新失敗、一定時間後リトライします\n" + e.Message);
-                await Task.Delay(requestLimitationMSec);
-            }
+            while (true)
+                try
+                {
+                    // 現在のページを取得して更新する
+                    var newPage = service.Pages.Get(blogId, pageId).Execute();
+                    newPage.Content = content;
+                    var updPage = service.Pages.Update(newPage, blogId, pageId).Execute();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError("ページ更新失敗、一定時間後リトライします\n" + e.Message);
+                    await Task.Delay(requestLimitationMSec);
+                }
         }
     }
 }
