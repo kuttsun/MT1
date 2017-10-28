@@ -75,16 +75,18 @@ namespace MT1.GoogleApi
             return service;
         }
 
-        public async Task<PostInformation> PostAsync(Article article)
+        public async Task<PostInformation> InsertPostAsync(Article article)
         {
             // Bloggerのインスタンスを取得
             var service = await GetServiceAsync();
 
             // Blogに新しいエントリを作成する
-            var newPost = new Post();
-            newPost.Title = article.title;
-            newPost.Content = article.content;
-            newPost.Published = DateTime.Now;
+            var newPost = new Post
+            {
+                Title = article.title,
+                Content = article.content,
+                Published = DateTime.Now
+            };
             if (article.labels.Count > 0)
             {
                 newPost.Labels = article.labels;
@@ -159,18 +161,13 @@ namespace MT1.GoogleApi
             }
         }
 
-        /// <summary>
-        /// ページを更新する
-        /// </summary>
-        /// <param name="pageId"></param>
-        /// <param name="content"></param>
-        /// <returns></returns>
         public async Task UpdatePageAsync(string pageId, string content)
         {
             // Bloggerのインスタンスを取得
             var service = await GetServiceAsync();
 
             while (true)
+            {
                 try
                 {
                     // 現在のページを取得して更新する
@@ -183,6 +180,7 @@ namespace MT1.GoogleApi
                     logger.LogError("ページ更新失敗、一定時間後リトライします\n" + e.Message);
                     await Task.Delay(requestLimitationMSec);
                 }
+            }
         }
     }
 }

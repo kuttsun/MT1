@@ -416,13 +416,13 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             try
             {
-                saleInformation.PostInformation = await blogger.PostAsync(CreateArticle(saleInformation));
+                saleInformation.PostInformation = await blogger.InsertPostAsync(CreateArticle(saleInformation));
 
                 logger.LogInformation($"投稿完了\n{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
             }
             catch(Exception e)
             {
-                logger.LogError("投稿失敗");
+                logger.LogError("投稿失敗\n" + e.Message);
                 throw;
             }
         }
