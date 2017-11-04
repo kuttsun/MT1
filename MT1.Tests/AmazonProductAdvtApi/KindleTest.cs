@@ -39,6 +39,7 @@ namespace MT1.Tests
             InlineData("8/17", "【期間限定無料&amp;50%OFF】「夏☆電書」女の恨み～リベンジ～特集 (8/17まで)"),
             InlineData("6/8", "【期間限定無料お試し&amp;通常版半額】小説・ラノベのコミカライズ作品フェア（6/8まで）"),
             InlineData("8/14", "【最大50%ポイント還元】3日間限定全点フェア（8/14まで）（終了"),
+            InlineData("11/16", "【期間限定無料】過去・現在・未来…時代（とき）を翔けるマンガ特集(11/16まで)"),
             InlineData(null, "【50%ポイント還元】　SBクリエイティブキャンペーン")]
         public void ExtractEndDateTest(string expected, string title)
         {
