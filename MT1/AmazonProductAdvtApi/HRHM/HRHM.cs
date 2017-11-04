@@ -64,14 +64,14 @@ namespace MT1.AmazonProductAdvtApi.HRHM
         /// 処理の開始
         /// </summary>
         /// <param name="args"></param>
-        public async void Run()
+        public void Run()
         {
             logger.LogInformation("----- HRHM Begin -----");
 
             try
             {
                 // セールの一覧を取得
-                await ItemSearchAsync("569298");
+                ItemSearch("569298");
             }
             catch (Exception e)
             {
@@ -86,7 +86,7 @@ namespace MT1.AmazonProductAdvtApi.HRHM
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
-        async Task<bool> ItemSearchAsync(string nodeId)
+        bool ItemSearch(string nodeId)
         {
             IDictionary<string, string> request = new Dictionary<string, String>
             {
@@ -101,7 +101,7 @@ namespace MT1.AmazonProductAdvtApi.HRHM
             logger.LogInformation($"CD 情報一覧取得開始");
 
             // リクエストを送信して xml を取得
-            var result = await GetXmlAsync(request);
+            var result = GetXml(request);
 
             // 取得した XML を読み込む
             XmlDocument doc = new XmlDocument();

@@ -30,10 +30,15 @@ namespace MT1
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            //serviceProvider.GetService<Kindle>().Run();
-            serviceProvider.GetService<HRHM>().Run();
-
-            Console.ReadKey();
+            try
+            {
+                serviceProvider.GetService<Kindle>().Run();
+                //serviceProvider.GetService<HRHM>().Run();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("異常終了" + e.Message);
+            }
         }
 
         private static void ConfigureServices(IServiceCollection services)

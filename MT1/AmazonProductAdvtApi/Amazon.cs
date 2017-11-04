@@ -51,7 +51,7 @@ namespace MT1.AmazonProductAdvtApi
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        protected async Task<Stream> GetXmlAsync(IDictionary<string, string> request)
+        protected Stream GetXml(IDictionary<string, string> request)
         {
             // 署名を行う
             var requestUrl = helper.Sign(request);
@@ -62,7 +62,7 @@ namespace MT1.AmazonProductAdvtApi
                 try
                 {
                     // Webページを取得するのは、事実上この1行だけ
-                    return await client.GetStreamAsync(requestUrl);
+                    return client.GetStreamAsync(requestUrl).Result;
                 }
                 catch (HttpRequestException e)
                 {
@@ -87,7 +87,7 @@ namespace MT1.AmazonProductAdvtApi
                     // throw;
                 }
 
-                await Task.Delay(2000);
+                Task.Delay(2000).Wait();
             }
         }
 

@@ -44,28 +44,28 @@ namespace MT1.GoogleApi
             this.blogId = blogId;
         }
 
-        async Task<UserCredential> GetCredentialAsync()
+        UserCredential GetCredential()
         {
             if (credential == null)
             {
                 using (var stream = new FileStream("client_id.json", FileMode.Open, FileAccess.Read))
                 {
-                    credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
                             GoogleClientSecrets.Load(stream).Secrets,
                             new[] { BloggerService.Scope.Blogger },
                             "user",
-                            CancellationToken.None);
+                            CancellationToken.None).Result;
                 }
             }
             return credential;
         }
 
-        async Task<BloggerService> GetServiceAsync()
+        BloggerService GetService()
         {
             // Bloggerのインスタンスを取得
             if (service == null)
             {
-                var credential = await GetCredentialAsync();
+                var credential = GetCredential();
                 service = new BloggerService(new BaseClientService.Initializer()
                 {
                     HttpClientInitializer = credential,
@@ -75,10 +75,10 @@ namespace MT1.GoogleApi
             return service;
         }
 
-        public async Task<PostInformation> InsertPostAsync(Article article)
+        public PostInformation InsertPost(Article article)
         {
             // Bloggerのインスタンスを取得
-            var service = await GetServiceAsync();
+            var service = GetService();
 
             // Blogに新しいエントリを作成する
             var newPost = new Post
@@ -103,15 +103,15 @@ namespace MT1.GoogleApi
                 catch (Exception e)
                 {
                     logger.LogError("新規投稿失敗、一定時間後リトライします\n" + e.Message);
-                    await Task.Delay(requestLimitationMSec);
+                    Task.Delay(requestLimitationMSec).Wait();
                 }
             }
         }
 
-        async Task<Post> GetPostAsync(string postId)
+        Post GetPost(string postId)
         {
             // Bloggerのインスタンスを取得
-            var service = await GetServiceAsync();
+            var service = GetService();
 
             while (true)
             {
@@ -122,15 +122,15 @@ namespace MT1.GoogleApi
                 catch (Exception e)
                 {
                     logger.LogError("投稿取得失敗、一定時間後リトライします\n" + e.Message);
-                    await Task.Delay(requestLimitationMSec);
+                    Task.Delay(requestLimitationMSec).Wait();
                 }
             }
         }
 
-        public async Task<PostInformation> UpdatePostAsync(Article article, PostInformation postInformation)
+        public PostInformation UpdatePost(Article article, PostInformation postInformation)
         {
             // Bloggerのインスタンスを取得
-            var service = await GetServiceAsync();
+            var service = GetService();
 
             var newPost = new Post
             {
@@ -156,15 +156,15 @@ namespace MT1.GoogleApi
                 catch (Exception e)
                 {
                     logger.LogError("投稿更新失敗、一定時間後リトライします\n" + e.Message);
-                    await Task.Delay(requestLimitationMSec);
+                    Task.Delay(requestLimitationMSec).Wait();
                 }
             }
         }
 
-        public async Task UpdatePageAsync(string pageId, string content)
+        public void UpdatePage(string pageId, string content)
         {
             // Bloggerのインスタンスを取得
-            var service = await GetServiceAsync();
+            var service = GetService();
 
             while (true)
             {
@@ -174,11 +174,12 @@ namespace MT1.GoogleApi
                     var newPage = service.Pages.Get(blogId, pageId).Execute();
                     newPage.Content = content;
                     var updPage = service.Pages.Update(newPage, blogId, pageId).Execute();
+                    return;
                 }
                 catch (Exception e)
                 {
                     logger.LogError("ページ更新失敗、一定時間後リトライします\n" + e.Message);
-                    await Task.Delay(requestLimitationMSec);
+                    Task.Delay(requestLimitationMSec).Wait();
                 }
             }
         }

@@ -66,14 +66,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// 処理の開始
         /// </summary>
         /// <param name="args"></param>
-        public async void Run()
+        public void Run()
         {
             logger.LogInformation("----- Begin -----");
 
             try
             {
                 // セールの一覧を取得
-                await BrowseNodeLookupAsync("2275277051");
+                BrowseNodeLookup("2275277051");
 
                 data.LastUpdate = DateTime.Now.ToString("yyyy/MM/dd (ddd) HH:mm:ss");
 
@@ -81,7 +81,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 int count = 0;
                 foreach (var saleInformation in data.SaleInformations)
                 {
-                    await Task.Delay(2000);
+                    Task.Delay(2000).Wait();
 
                     logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件開始]");
 
@@ -99,10 +99,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                             {
                                 logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
 
-                                await CheckSalePeriod(saleInformation);
+                                CheckSalePeriod(saleInformation);
 
                                 // 終了した場合はタイトルを終了済みにする
-                                await UpdateArticleAsync(saleInformation);
+                                UpdateArticle(saleInformation);
                             }
                             catch(Exception e)
                             {
@@ -115,11 +115,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                             try
                             {
                                 logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
-                                if (await ItemSearchAllAsync(saleInformation) == true)
+                                if (ItemSearchAll(saleInformation) == true)
                                 {
-                                    await CheckSalePeriod(saleInformation);
+                                    CheckSalePeriod(saleInformation);
 
-                                    await PostToBlogAsync(saleInformation);
+                                    PostToBlog(saleInformation);
                                 }
                             }
                             catch (Exception e)
@@ -145,7 +145,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             // 開催中セール一覧のページを更新
             try
             {
-                await UpdateCurrentSaleListPageAsync();
+                UpdateCurrentSaleListPage();
             }
             catch (Exception e)
             {
@@ -155,7 +155,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             // 最新セール一覧のページを更新
             try
             {
-                await UpdateLatestSaleListPageAsync();
+                UpdateLatestSaleListPage();
             }
             catch (Exception e)
             {
@@ -178,7 +178,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// セールの一覧を取得
         /// </summary>
         /// <param name="nodeId">基準となるノードID</param>
-        async Task BrowseNodeLookupAsync(string browseNodeId)
+        void BrowseNodeLookup(string browseNodeId)
         {
             IDictionary<string, string> request = new Dictionary<string, String>
             {
@@ -193,7 +193,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             logger.LogInformation($"セール情報一覧取得開始");
 
             // リクエストを送信して xml を取得
-            var result = await GetXmlAsync(request);
+            var result = GetXml(request);
 
             // 取得した XML を読み込む
             XmlDocument doc = new XmlDocument();
@@ -256,16 +256,16 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
-        async Task<bool> ItemSearchAllAsync(SaleInformation saleInformation)
+        bool ItemSearchAll(SaleInformation saleInformation)
         {
             int page = 0;
             bool result = false;
 
             do
             {
-                await Task.Delay(2000);
+                Task.Delay(2000).Wait();
                 page++;
-                result = await ItemSearchAsync(saleInformation, page);
+                result = ItemSearch(saleInformation, page);
                 if (result == false)
                 {
                     break;
@@ -287,7 +287,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemSearch.html
-        async Task<bool> ItemSearchAsync(SaleInformation saleInformation, int page)
+        bool ItemSearch(SaleInformation saleInformation, int page)
         {
             IDictionary<string, string> request = new Dictionary<string, String>
             {
@@ -303,7 +303,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             logger.LogInformation($"商品情報取得開始({page}ページ目)");
 
             // リクエストを送信して xml を取得
-            var result = await GetXmlAsync(request);
+            var result = GetXml(request);
 
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
@@ -377,7 +377,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// https://images-na.ssl-images-amazon.com/images/G/09/associates/paapi/dg/index.html?ItemLookup.html
-        async Task ItemLookUpAsync(string asin)
+        void ItemLookUp(string asin)
         {
             IDictionary<string, string> request = new Dictionary<string, String>
             {
@@ -391,7 +391,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             logger.LogInformation($"ASIN {asin} の詳細取得開始");
 
             // リクエストを送信して xml を取得
-            var result = await GetXmlAsync(request);
+            var result = GetXml(request);
 
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
@@ -407,7 +407,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <summary>
         /// ブログに投稿する
         /// </summary>
-        async Task PostToBlogAsync(SaleInformation saleInformation)
+        void PostToBlog(SaleInformation saleInformation)
         {
             if (saleInformation.Error == true)
             {
@@ -416,7 +416,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             try
             {
-                saleInformation.PostInformation = await blogger.InsertPostAsync(CreateArticle(saleInformation));
+                saleInformation.PostInformation = blogger.InsertPost(CreateArticle(saleInformation));
 
                 logger.LogInformation($"投稿完了\n{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
             }
@@ -430,11 +430,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <summary>
         /// 投稿済みの記事を更新する
         /// </summary>
-        async Task UpdateArticleAsync(SaleInformation saleInformation)
+        void UpdateArticle(SaleInformation saleInformation)
         {
             try
             {
-                saleInformation.PostInformation = await blogger.UpdatePostAsync(CreateArticle(saleInformation), saleInformation.PostInformation);
+                saleInformation.PostInformation = blogger.UpdatePost(CreateArticle(saleInformation), saleInformation.PostInformation);
 
                 logger.LogInformation($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
             }
@@ -557,10 +557,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// <returns></returns>
-        public async Task<bool> ExtractSalePeriod(SaleInformation saleInformation)
+        public bool ExtractSalePeriod(SaleInformation saleInformation)
         {
             // 指定したサイトのHTMLをストリームで取得する
-            using (var stream = await client.GetStreamAsync(GetAssociateLinkByBrowseNode(saleInformation.NodeId)))
+            using (var stream = client.GetStreamAsync(GetAssociateLinkByBrowseNode(saleInformation.NodeId)).Result)
             {
                 // AngleSharp.Parser.Html.HtmlParserオブジェクトにHTMLをパースさせる
                 var parser = new HtmlParser();
@@ -592,7 +592,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// 開催中セール一覧のページを更新する
         /// </summary>
         /// <returns></returns>
-        async Task UpdateCurrentSaleListPageAsync()
+        void UpdateCurrentSaleListPage()
         {
             string content = $@"<p>
             Amazon Product Advertising API から取得した、現在開催中の Kindle セールの一覧です。<br>
@@ -631,7 +631,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             try
             {
-                await blogger.UpdatePageAsync(options.CurrentSaleListPageId, content);
+                blogger.UpdatePage(options.CurrentSaleListPageId, content);
             }
             catch
             {
@@ -644,7 +644,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// 最新セール情報一覧のページを更新する
         /// </summary>
         /// <returns></returns>
-        async Task UpdateLatestSaleListPageAsync()
+        void UpdateLatestSaleListPage()
         {
             string content = $@"<p>
             Amazon Product Advertising API から取得した Kindle のセールページ一覧です。<br>
@@ -682,7 +682,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             try
             {
-                await blogger.UpdatePageAsync(options.LatestSaleListPageId, content);
+                blogger.UpdatePage(options.LatestSaleListPageId, content);
             }
             catch
             {
@@ -695,7 +695,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// セール期間を判別してセットする
         /// </summary>
         /// <param name="saleInformation"></param>
-        async Task CheckSalePeriod(SaleInformation saleInformation)
+        void CheckSalePeriod(SaleInformation saleInformation)
         {
             // タイトルから終了日を判別
             var endDate = ExtractEndDate(saleInformation.Name);
@@ -717,7 +717,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
 
             // セールページをスクレイピングしてセール期間を判別
-            if (await ExtractSalePeriod(saleInformation) == true)
+            if (ExtractSalePeriod(saleInformation) == true)
             {
                 if (saleInformation.Error == true) return;
 
