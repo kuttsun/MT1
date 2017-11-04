@@ -18,6 +18,7 @@ namespace MT1.AmazonProductAdvtApi
     public class Amazon
     {
         protected HttpClient client = new HttpClient();
+        protected readonly int requestWaitTimerMSec = 1500;
 
         protected static readonly string service = "AWSECommerceService";
         protected static readonly string apiVersion = "2011-08-01";
@@ -61,33 +62,13 @@ namespace MT1.AmazonProductAdvtApi
             {
                 try
                 {
-                    // Webページを取得するのは、事実上この1行だけ
                     return client.GetStreamAsync(requestUrl).Result;
                 }
-                catch (HttpRequestException e)
+                catch (Exception e)
                 {
-                    // 404エラーや、名前解決失敗など
-                    var message = "例外発生!";
-                    // InnerExceptionも含めて、再帰的に例外メッセージを表示する
-                    Exception ex = e;
-                    while (ex != null)
-                    {
-                        message += "\n" + ex.Message;
-                        ex = ex.InnerException;
-                    }
-                    logger.LogWarning(message);
-
-                    //throw;
+                    logger.LogError("取得失敗、リトライします\n" + e.Message);
+                    Task.Delay(requestWaitTimerMSec).Wait();
                 }
-                catch (TaskCanceledException e)
-                {
-                    // タスクがキャンセルされたとき（一般的にタイムアウト）
-                    logger.LogWarning("タイムアウト!\n" + e.Message);
-
-                    // throw;
-                }
-
-                Task.Delay(2000).Wait();
             }
         }
 

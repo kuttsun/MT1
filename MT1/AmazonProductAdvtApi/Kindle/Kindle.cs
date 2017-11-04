@@ -81,7 +81,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 int count = 0;
                 foreach (var saleInformation in data.SaleInformations)
                 {
-                    Task.Delay(2000).Wait();
+                    Task.Delay(requestWaitTimerMSec).Wait();
 
                     logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件開始]");
 
@@ -263,7 +263,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             do
             {
-                Task.Delay(2000).Wait();
+                Task.Delay(requestWaitTimerMSec).Wait();
                 page++;
                 result = ItemSearch(saleInformation, page);
                 if (result == false)
