@@ -58,7 +58,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 }
             }
 
-            return "期間不明";
+            return "不明";
         }
     }
 }

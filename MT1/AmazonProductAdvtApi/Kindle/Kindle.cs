@@ -140,27 +140,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             catch (Exception e)
             {
                 logger.LogError(e.Message);
+                throw;
             }
 
             // 開催中セール一覧のページを更新
-            try
-            {
-                UpdateCurrentSaleListPage();
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message);
-            }
+            UpdateCurrentSaleListPage();
 
             // 最新セール一覧のページを更新
-            try
-            {
-                UpdateLatestSaleListPage();
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message);
-            }
+            UpdateLatestSaleListPage();
 
             logger.LogInformation("----- End -----");
         }
@@ -594,6 +581,9 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <returns></returns>
         void UpdateCurrentSaleListPage()
         {
+            // 逆順で表示
+            var saleInformations = data.SaleInformations.Reverse<SaleInformation>();
+
             string content = $@"<p>
             Amazon Product Advertising API から取得した、現在開催中の Kindle セールの一覧です。<br>
             </p>
@@ -605,7 +595,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             content += @"<div class=""table-responsive"">
             <table class=""table"">
             <tr><th>No.</th><th>開催期間</th><th>タイトル</th><th>Amazon</th></tr>";
-            foreach (var saleInformation in data.SaleInformations)
+            foreach (var saleInformation in saleInformations)
             {
                 if ((saleInformation.Error == false) && (saleInformation.SaleStarted == true) && (saleInformation.SaleFinished == false))
                 {
@@ -646,6 +636,9 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <returns></returns>
         void UpdateLatestSaleListPage()
         {
+            // 逆順で表示
+            var saleInformations = data.SaleInformations.Reverse<SaleInformation>();
+
             string content = $@"<p>
             Amazon Product Advertising API から取得した Kindle のセールページ一覧です。<br>
             この中にはまだセールを開始していないものや、既に終了したセールなど、セールではないものもありますのでご注意ください。
@@ -658,7 +651,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             content += @"<div class=""table-responsive"">
             <table class=""table"">
             <tr><th>No.</th><th>開催期間</th><th>タイトル</th><th>Amazon</th><th>ESF</th></tr>";
-            foreach (var saleInformation in data.SaleInformations)
+            foreach (var saleInformation in saleInformations)
             {
                 string entry;
                 if (saleInformation.PostInformation == null)
