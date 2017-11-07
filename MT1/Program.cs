@@ -32,8 +32,25 @@ namespace MT1
 
             try
             {
-                serviceProvider.GetService<Kindle>().Run();
-                //serviceProvider.GetService<HRHM>().Run();
+                if(args.Length > 0)
+                {
+                    switch (args[0])
+                    {
+                        case "kindle":
+                            serviceProvider.GetService<Kindle>().Run();
+                            break;
+                        case "hrhm":
+                            serviceProvider.GetService<HRHM>().Run();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    // 主にデバッグ用
+                    serviceProvider.GetService<HRHM>().Run();
+                }
             }
             catch(Exception e)
             {
