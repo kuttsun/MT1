@@ -606,7 +606,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     }
                     else
                     {
-                        entry = $"<a href='{saleInformation.PostInformation.Url}' target='_blank'>{saleInformation.Name}</a>";
+                        entry = $"<a href='{saleInformation.PostInformation.Url}'>{saleInformation.Name}</a>";
                     }
 
                     content += $@"<tr>
@@ -660,7 +660,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 }
                 else
                 {
-                    entry = $"<a href='{saleInformation.PostInformation.Url}' target='_blank'>{saleInformation.Name}</a>";
+                    entry = $"<a href='{saleInformation.PostInformation.Url}'>{saleInformation.Name}</a>";
                 }
 
                 content += $@"<tr>
