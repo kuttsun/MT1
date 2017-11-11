@@ -72,13 +72,25 @@ namespace MT1.AmazonProductAdvtApi.HRHM
             {
                 // セールの一覧を取得
                 ItemSearch("569298");
+
+                //SerializeData(options.GetDataFilePath());
             }
             catch (Exception e)
             {
-                logger.LogError("一覧取得失敗" + e.Message);
+                logger.LogError(e.Message);
+                throw;
             }
 
             logger.LogInformation("----- HRHM End -----");
+        }
+
+        void SerializeData(string filePath)
+        {
+            var xmlSerializer = new XmlSerializer(typeof(HRHMData));
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                xmlSerializer.Serialize(fileStream, data);
+            }
         }
 
         /// <summary>
