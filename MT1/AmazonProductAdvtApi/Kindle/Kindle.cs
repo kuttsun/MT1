@@ -452,7 +452,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             article.content += $@"<p>
             対象は{saleInformation.TotalResults}冊。<br>
-            Amazon のセールページは<a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>こちら</a>。
+            Amazon のセールページは<a class='amazon' href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>こちら</a>。
             </p>";
 
             article.content += @"<!--more-->";
@@ -468,8 +468,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 if (count % colMax == 0) article.content += "<div class=\"row flex\">\n";
                 article.content += $@"
                 <div class=""col-xs-6 col-sm-3 col-md-3 col-lg-3"">
-                <a href='{item.DetailPageUrl}' target='_blank'><img src='{item.MediumImageUrl}' /></a><br>
-                <a href='{item.DetailPageUrl}' target='_blank'>{item.Title}</a>
+                <a class='amazon' href='{item.DetailPageUrl}' target='_blank'><img src='{item.MediumImageUrl}' /></a><br>
+                <a class='amazon' href='{item.DetailPageUrl}' target='_blank'>{item.Title}</a>
                 </div>";
                 article.content += "\n";
                 if (count % colMax == colMax - 1) article.content += "</div>\n";
@@ -481,7 +481,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             if (saleInformation.TotalResults > 100)
             {
-                article.content += $@"<p><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>もっと見る</a></p>";
+                article.content += $@"<p><a class='amazon' href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>もっと見る</a></p>";
             }
 
             return article;
@@ -613,7 +613,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     <td>{count++}</td>
                     <td>{saleInformation.GetSalePeriod()}</td>
                     <td>{entry}</td>
-                    <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
+                    <td><a class='amazon' href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
                     </tr>";
                 }
             }
@@ -667,7 +667,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 <td>{count++}</td>
                 <td>{saleInformation.GetSalePeriod()}</td>
                 <td>{entry}</td>
-                <td><a href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
+                <td><a class='amazon' href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
                 <td>{(saleInformation.Error ? "1" : "0")}{(saleInformation.SaleStarted ? "1" : "0")}{(saleInformation.SaleFinished ? "1" : "0")}</td>
                 </tr>";
             }
