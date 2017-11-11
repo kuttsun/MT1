@@ -28,7 +28,7 @@ namespace MT1.Tests
 
             saleInformation.SaleStarted = false;
             saleInformation.SaleFinished = false;
-            Assert.Equal("期間不明", saleInformation.GetSalePeriod());
+            Assert.Equal("不明", saleInformation.GetSalePeriod());
 
             saleInformation.SaleStarted = true;
             saleInformation.EndDate = DateTime.Parse("2017/08/31");
