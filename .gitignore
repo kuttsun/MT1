@@ -265,3 +265,5 @@ __pycache__/
 *.bak
 
 MT1/Data
+Coverage/
+coverage.xml
