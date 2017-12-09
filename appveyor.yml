@@ -5,9 +5,9 @@ before_build:
 build_script:
   - dotnet build MT1
 test_script:
-  # OpenCover ‚ÅƒJƒoƒŒƒbƒW‚ğŒv‘ª
-  - OpenCover.bat dotnet "coverage.xml"
-  # Codecov ‚ÖƒJƒoƒŒƒbƒWŒ‹‰Ê‚ğ“n‚·
+  # OpenCover ã§ã‚«ãƒãƒ¬ãƒƒã‚¸ã‚’è¨ˆæ¸¬
+  - OpenCover.bat dotnet.exe "coverage.xml"
+  # Codecov ã¸ã‚«ãƒãƒ¬ãƒƒã‚¸çµæœã‚’æ¸¡ã™
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
   - codecov -f "coverage.xml"
