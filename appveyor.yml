@@ -6,7 +6,7 @@ build_script:
   - dotnet build MT1
 test_script:
   # OpenCover でカバレッジを計測
-  - OpenCover.bat dotnet.exe "coverage.xml"
+  - OpenCover.bat
   # Codecov へカバレッジ結果を渡す
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
