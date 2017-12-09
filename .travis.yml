@@ -9,6 +9,3 @@ env:
 script:
   - dotnet restore
   - dotnet test MT1.Tests
-after_success
-  - OpenCover.bat
-  - Codecov.bat

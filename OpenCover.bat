@@ -1,10 +1,10 @@
 ﻿rem ソリューションルートで実行すること
 
 rem OpenCover のインストール先
-set OPENCOVER=%1
+set OPENCOVER="%USERPROFILE%\.nuget\packages\opencover\4.6.519\tools\OpenCover.Console.exe"
 
 rem テストコマンド
-set TARGET="C:\Program Files\dotnet\dotnet.exe"
+set TARGET=%1
 
 rem テストコマンド引数
 set TARGET_TEST="test MT1.Tests\MT1.Tests.csproj"
