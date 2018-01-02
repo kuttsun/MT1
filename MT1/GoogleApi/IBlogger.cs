@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MT1.GoogleApi
 {
-    interface IBlogger
+    public interface IBlogger
     {
         PostInformation InsertPost(Article article);
         PostInformation UpdatePost(Article article, PostInformation postInformation);

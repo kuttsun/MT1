@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using MT1.Options;
 using MT1.AmazonProductAdvtApi.Kindle;
 using MT1.AmazonProductAdvtApi.HRHM;
+using MT1.GoogleApi;
 
 
 namespace MT1
@@ -98,6 +99,9 @@ namespace MT1
             services.Configure<AmazonOptions>(configuration.GetSection(nameof(AmazonOptions)));
             services.Configure<KindleOptions>(configuration.GetSection(nameof(KindleOptions)));
             services.Configure<HRHMOptions>(configuration.GetSection(nameof(HRHMOptions)));
+
+            // IBlogger を DI サービスコンテナに登録
+            services.AddTransient<IBlogger, Blogger>();
 
             // Application を DI サービスコンテナに登録する
             // AddTransient はインジェクション毎にインスタンスが生成される

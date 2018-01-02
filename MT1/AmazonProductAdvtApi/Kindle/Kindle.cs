@@ -26,20 +26,19 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 {
     public partial class Kindle : Amazon
     {
-        Blogger blogger;
-
-        KindleData data;
-
         ILogger logger;
+        IBlogger blogger;
+        KindleData data;
         KindleOptions options;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public Kindle(ILogger<Kindle> logger, IOptions<KindleOptions> kindleOptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
+        public Kindle(IBlogger blogger, ILogger<Kindle> logger, IOptions<KindleOptions> kindleOptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
         {
             this.logger = logger;
             options = kindleOptions?.Value;
+            this.blogger = blogger;
 
             if (options != null)
             {

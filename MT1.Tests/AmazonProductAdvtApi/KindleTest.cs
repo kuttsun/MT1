@@ -31,7 +31,7 @@ namespace MT1.Tests
             InlineData("その他", "おすすめの本 ")]
         public void ExtractTagsTest(string expected, string title)
         {
-            var kindle = new Kindle(logger, null, null);
+            var kindle = new Kindle(null, logger, null, null);
             Assert.True(kindle.ExtractLabels(title).Contains(expected));
         }
 
@@ -43,7 +43,7 @@ namespace MT1.Tests
             InlineData(null, "【50%ポイント還元】　SBクリエイティブキャンペーン")]
         public void ExtractEndDateTest(string expected, string title)
         {
-            var kindle = new Kindle(logger, null, null);
+            var kindle = new Kindle(null, logger, null, null);
             Assert.Equal(expected, kindle.ExtractEndDate(title));
         }
     }
