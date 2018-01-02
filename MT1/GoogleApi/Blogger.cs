@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MT1.GoogleApi
 {
-    public class Blogger : IBlogger
+    class Blogger : IBlogger
     {
         // エラー時の待機時間（100秒）
         readonly int requestLimitationMSec = 100 * 1000;
