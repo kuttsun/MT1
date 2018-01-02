@@ -14,21 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MT1.GoogleApi
 {
-    public class PostInformation
-    {
-        public string Url;
-        public string PostId;
-        public DateTime? Published;
-    }
-
-    public class Article
-    {
-        public string title;
-        public string content;
-        public IList<string> labels;
-    }
-
-    class Blogger
+    class Blogger : IBlogger
     {
         // エラー時の待機時間（100秒）
         readonly int requestLimitationMSec = 100 * 1000;
