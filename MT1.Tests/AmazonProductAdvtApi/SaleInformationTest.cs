@@ -7,18 +7,25 @@ namespace MT1.Tests
 {
     public class SaleInformationTest
     {
-        [Fact]
-        public void SetSalePeriodTest()
+        [Theory,
+            InlineData(2018, 12, 1, "8/18", "8/31", 50, 100, "2018/08/18", "2018/08/31"),
+            InlineData(2018, 12, 1, "12/30", "12/31", 50, 100, "2018/12/30", "2018/12/31"),
+            InlineData(2018, 12, 1, "12/31", "1/1", 50, 100, "2018/12/31", "2019/01/01"),
+            InlineData(2018, 12, 1, "1/1", "1/8", 50, 100, "2018/01/01", "2018/01/08"),
+            // 年跨ぎを考慮する最新のセール情報
+            InlineData(2018, 12, 1, "8/18", "8/31", 51, 100, "2018/08/18", "2018/08/31"),
+            InlineData(2018, 12, 1, "12/30", "12/31", 51, 100, "2018/12/30", "2018/12/31"),
+            InlineData(2018, 12, 1, "12/31", "1/1", 51, 100, "2018/12/31", "2019/01/01"),
+            InlineData(2018, 12, 1, "1/1", "1/8", 51, 100, "2019/01/01", "2019/01/08")]
+        public void SetSalePeriodTest(int nowYear, int nowMonth, int nowDay, string startDate, string endDate, int count, int total, string expectedStartDate, string expectedEndDate)
         {
             var saleInformation = new SaleInformation();
 
-            saleInformation.SetSalePeriod("8/18", "8/31");
-            Assert.Equal("2017/08/18", saleInformation.StartDate.ToString("yyyy/MM/dd"));
-            Assert.Equal("2017/08/31", saleInformation.EndDate.ToString("yyyy/MM/dd"));
+            DateTime now = new DateTime(nowYear, nowMonth, nowDay);
 
-            saleInformation.SetSalePeriod("12/31", "1/1");
-            Assert.Equal("2017/12/31", saleInformation.StartDate.ToString("yyyy/MM/dd"));
-            Assert.Equal("2018/01/01", saleInformation.EndDate.ToString("yyyy/MM/dd"));
+            saleInformation.SetSalePeriod(now, startDate, endDate, count, total);
+            Assert.Equal(expectedStartDate, saleInformation.StartDate.ToString("yyyy/MM/dd"));
+            Assert.Equal(expectedEndDate, saleInformation.EndDate.ToString("yyyy/MM/dd"));
         }
 
         [Fact]

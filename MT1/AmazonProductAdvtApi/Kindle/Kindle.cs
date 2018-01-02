@@ -98,12 +98,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                             {
                                 logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
 
-                                CheckSalePeriod(saleInformation);
+                                CheckSalePeriod(saleInformation, count, data.SaleInformations.Count());
 
                                 // 終了した場合はタイトルを終了済みにする
                                 UpdateArticle(saleInformation);
                             }
-                            catch(Exception e)
+                            catch (Exception e)
                             {
                                 logger.LogError(e.Message);
                             }
@@ -116,7 +116,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                                 logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
                                 if (ItemSearchAll(saleInformation) == true)
                                 {
-                                    CheckSalePeriod(saleInformation);
+                                    CheckSalePeriod(saleInformation, count, data.SaleInformations.Count());
 
                                     PostToBlog(saleInformation);
                                 }
@@ -406,7 +406,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
                 logger.LogInformation($"投稿完了\n{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.LogError("投稿失敗\n" + e.Message);
                 throw;
@@ -543,35 +543,32 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// </summary>
         /// <param name="saleInformation"></param>
         /// <returns></returns>
-        public bool ExtractSalePeriod(SaleInformation saleInformation)
+        public (string startDate, string endDate) ExtractSalePeriod(SaleInformation saleInformation, Stream stream)
         {
             // 指定したサイトのHTMLをストリームで取得する
-            using (var stream = client.GetStreamAsync(GetAssociateLinkByBrowseNode(saleInformation.NodeId)).Result)
+
+            // AngleSharp.Parser.Html.HtmlParserオブジェクトにHTMLをパースさせる
+            var parser = new HtmlParser();
+            var doc = parser.Parse(stream);
+
+            // ページによって h3 の場合も h4 の場合もある
+            foreach (var tag in new[] { "h3", "h4" })
             {
-                // AngleSharp.Parser.Html.HtmlParserオブジェクトにHTMLをパースさせる
-                var parser = new HtmlParser();
-                var doc = parser.Parse(stream);
+                var elements = doc.QuerySelectorAll(tag);
 
-                // ページによって h3 の場合も h4 の場合もある
-                foreach (var tag in new[] { "h3", "h4" })
+                foreach (var element in elements)
                 {
-                    var elements = doc.QuerySelectorAll(tag);
+                    // 例：期間限定：8/18（金）～8/31（木）
+                    var result = Regex.Match(element.InnerHtml, @"期間限定：(?<StartDate>.*?)（.*）～(?<EndDate>.*?)（.*）");
 
-                    foreach (var element in elements)
+                    if (result.Success == true)
                     {
-                        // 例：期間限定：8/18（金）～8/31（木）
-                        var result = Regex.Match(element.InnerHtml, @"期間限定：(?<StartDate>.*?)（.*）～(?<EndDate>.*?)（.*）");
-
-                        if (result.Success == true)
-                        {
-                            saleInformation.SetSalePeriod(result.Groups["StartDate"].Value, result.Groups["EndDate"].Value);
-                            return true;
-                        }
+                        return (result.Groups["StartDate"].Value, result.Groups["EndDate"].Value);
                     }
                 }
-
-                return false;
             }
+
+            return (null, null);
         }
 
         /// <summary>
@@ -687,16 +684,16 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// セール期間を判別してセットする
         /// </summary>
         /// <param name="saleInformation"></param>
-        void CheckSalePeriod(SaleInformation saleInformation)
+        /// <param name="count">現在何件目のセール情報</param>
+        /// <param name="total">セール情報のトータル</param>
+        void CheckSalePeriod(SaleInformation saleInformation, int count, int total)
         {
+            if (saleInformation.Error == true) return;
+
             // タイトルから終了日を判別
-            var endDate = ExtractEndDate(saleInformation.Name);
-            if (endDate != null)
+            saleInformation.SetSalePeriod(DateTime.Now, null, ExtractEndDate(saleInformation.Name), count, total);
+            if (saleInformation.EndDate != null)
             {
-                saleInformation.EndDate = DateTime.Parse(endDate);
-
-                if (saleInformation.Error == true) return;
-
                 if (saleInformation.EndDate < DateTime.Now)
                 {
                     saleInformation.SaleFinished = true;
@@ -709,10 +706,14 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
 
             // セールページをスクレイピングしてセール期間を判別
-            if (ExtractSalePeriod(saleInformation) == true)
+            using (var stream = client.GetStreamAsync(GetAssociateLinkByBrowseNode(saleInformation.NodeId)).Result)
             {
-                if (saleInformation.Error == true) return;
+                (var startDate, var endDate) = ExtractSalePeriod(saleInformation, stream);
+                saleInformation.SetSalePeriod(DateTime.Now, startDate, endDate, count, total);
+            }
 
+            if (saleInformation.StartDate != null && saleInformation.EndDate != null)
+            {
                 if (saleInformation.EndDate < DateTime.Now)
                 {
                     saleInformation.SaleFinished = true;
