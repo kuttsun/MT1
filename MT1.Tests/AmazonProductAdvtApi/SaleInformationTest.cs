@@ -16,7 +16,11 @@ namespace MT1.Tests
             InlineData(2018, 12, 1, "8/18", "8/31", 51, 100, "2018/08/18", "2018/08/31"),
             InlineData(2018, 12, 1, "12/30", "12/31", 51, 100, "2018/12/30", "2018/12/31"),
             InlineData(2018, 12, 1, "12/31", "1/1", 51, 100, "2018/12/31", "2019/01/01"),
-            InlineData(2018, 12, 1, "1/1", "1/8", 51, 100, "2019/01/01", "2019/01/08")]
+            InlineData(2018, 12, 1, "1/1", "1/8", 51, 100, "2019/01/01", "2019/01/08"),
+            InlineData(2019, 1, 1, "8/18", "8/31", 51, 100, "2019/08/18", "2019/08/31"),
+            InlineData(2019, 1, 1, "12/30", "12/31", 51, 100, "2018/12/30", "2018/12/31"),
+            InlineData(2019, 1, 1, "12/31", "1/1", 51, 100, "2018/12/31", "2019/01/01"),
+            InlineData(2019, 1, 1, "1/1", "1/8", 51, 100, "2019/01/01", "2019/01/08")]
         public void SetSalePeriodTest(int nowYear, int nowMonth, int nowDay, string startDate, string endDate, int count, int total, string expectedStartDate, string expectedEndDate)
         {
             var saleInformation = new SaleInformation();

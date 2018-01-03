@@ -38,19 +38,26 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 this.EndDate = new DateTime(now.Year, int.Parse(EndDates[0]), int.Parse(EndDates[1]));
             }
 
-            // 開始日が終了日より未来の場合は年をまたいでいると判断し、終了日の年を進める
+            // 開始日が終了日より未来の場合は年をまたいでいると判断
             if (StartDate != null)
             {
                 if (this.StartDate > this.EndDate)
                 {
-                    this.EndDate = this.EndDate.AddYears(1);
+                    if (now.Month == 1)
+                    {
+                        this.StartDate = this.StartDate.AddYears(-1);
+                    }
+                    else
+                    {
+                        this.EndDate = this.EndDate.AddYears(1);
+                    }
                 }
             }
 
             // 最新の一定件数のセール情報において
             if (total - count < 50)
             {
-                if (DateTime.Now.Year == this.EndDate.Year)
+                if (now.Year == this.EndDate.Year)
                 {
                     // 現在が 12月で、セール終了日が同年の 1月 であれば、終了日の年を進める
                     if (now.Month == 12 && this.EndDate.Month == 1)
@@ -67,7 +74,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         this.EndDate = this.EndDate.AddYears(-1);
                         if (this.StartDate.Year > this.EndDate.Year)
                         {
-                            this.StartDate.AddYears(-1);
+                            this.StartDate = this.StartDate.AddYears(-1);
                         }
                     }
                 }
