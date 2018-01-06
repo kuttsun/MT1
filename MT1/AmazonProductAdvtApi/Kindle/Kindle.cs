@@ -40,10 +40,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             options = kindleOptions?.Value;
             this.blogger = blogger;
 
-            if (options != null)
-            {
-                blogger = new Blogger(logger, options.BlogId);
-            }
+            this.blogger.BlogId = options.BlogId;
 
             var serializer = new XmlSerializer(typeof(KindleData));
             try

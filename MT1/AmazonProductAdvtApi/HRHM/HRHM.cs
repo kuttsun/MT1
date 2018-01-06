@@ -24,7 +24,7 @@ namespace MT1.AmazonProductAdvtApi.HRHM
 {
     public class HRHM : Amazon
     {
-        Blogger blogger;
+        IBlogger blogger;
 
         HRHMData data;
 
@@ -34,15 +34,13 @@ namespace MT1.AmazonProductAdvtApi.HRHM
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public HRHM(ILogger<HRHM> logger, IOptions<HRHMOptions> hrHMoptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
+        public HRHM(IBlogger blogger, ILogger<HRHM> logger, IOptions<HRHMOptions> hrHMoptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
         {
             this.logger = logger;
             options = hrHMoptions?.Value;
+            this.blogger = blogger;
 
-            if (options != null)
-            {
-                blogger = new Blogger(logger, options.BlogId);
-            }
+            this.blogger.BlogId = options.BlogId;
 
             var serializer = new XmlSerializer(typeof(HRHMData));
             try

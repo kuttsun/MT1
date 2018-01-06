@@ -18,16 +18,15 @@ namespace MT1.GoogleApi
     {
         // エラー時の待機時間（100秒）
         readonly int requestLimitationMSec = 100 * 1000;
-        string blogId;
+        public string BlogId { get; set; }
         UserCredential credential = null;
         BloggerService service = null;
 
         ILogger logger;
 
-        public Blogger(ILogger logger, string blogId)
+        public Blogger(ILogger<Blogger> logger)
         {
             this.logger = logger;
-            this.blogId = blogId;
         }
 
         UserCredential GetCredential()
@@ -82,7 +81,7 @@ namespace MT1.GoogleApi
             {
                 try
                 {
-                    var updPost = service.Posts.Insert(newPost, blogId).Execute();
+                    var updPost = service.Posts.Insert(newPost, BlogId).Execute();
 
                     return new PostInformation { Url = updPost.Url, PostId = updPost.Id, Published = updPost.Published };
                 }
@@ -103,7 +102,7 @@ namespace MT1.GoogleApi
             {
                 try
                 {
-                    return service.Posts.Get(blogId, postId).Execute();
+                    return service.Posts.Get(BlogId, postId).Execute();
                 }
                 catch (Exception e)
                 {
@@ -134,7 +133,7 @@ namespace MT1.GoogleApi
             {
                 try
                 {
-                    var updPost = service.Posts.Update(newPost, blogId, postInformation.PostId).Execute();
+                    var updPost = service.Posts.Update(newPost, BlogId, postInformation.PostId).Execute();
 
                     // 更新後の情報を取得
                     return new PostInformation { Url = updPost.Url, PostId = updPost.Id, Published = updPost.Published };
@@ -157,9 +156,9 @@ namespace MT1.GoogleApi
                 try
                 {
                     // 現在のページを取得して更新する
-                    var newPage = service.Pages.Get(blogId, pageId).Execute();
+                    var newPage = service.Pages.Get(BlogId, pageId).Execute();
                     newPage.Content = content;
-                    var updPage = service.Pages.Update(newPage, blogId, pageId).Execute();
+                    var updPage = service.Pages.Update(newPage, BlogId, pageId).Execute();
                     return;
                 }
                 catch (Exception e)
