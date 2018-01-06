@@ -6,8 +6,8 @@ using System.Xml.Serialization;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.CommandLineUtils;
 
 using MT1.Options;
 using MT1.AmazonProductAdvtApi.Kindle;
@@ -31,32 +31,11 @@ namespace MT1
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            try
-            {
-                if(args.Length > 0)
-                {
-                    switch (args[0])
-                    {
-                        case "kindle":
-                            serviceProvider.GetService<Kindle>().Run();
-                            break;
-                        case "hrhm":
-                            serviceProvider.GetService<HRHM>().Run();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
-                    // 主にデバッグ用
-                    serviceProvider.GetService<HRHM>().Run();
-                }
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine("異常終了" + e.Message);
-            }
+            // コマンドライン引数に対する処理を定義
+            var cla = CommandLine(serviceProvider);
+
+            // コマンドライン引数に応じた処理を実行
+            cla.Execute(args);
         }
 
         private static void ConfigureServices(IServiceCollection services)
@@ -107,6 +86,64 @@ namespace MT1
             // AddTransient はインジェクション毎にインスタンスが生成される
             services.AddTransient<Kindle>();
             services.AddTransient<HRHM>();
+        }
+
+        static CommandLineApplication CommandLine(IServiceProvider serviceProvider)
+        {
+            // プログラム引数の解析
+            var cla = new CommandLineApplication(throwOnUnexpectedArg: false)
+            {
+                // アプリケーション名（ヘルプの出力で使用される）
+                Name = "BT1",
+            };
+
+            // ヘルプ出力のトリガーとなるオプションを指定
+            cla.HelpOption("-?|-h|--help");
+
+            cla.Command("kindle", command =>
+            {
+                // 説明（ヘルプの出力で使用される）
+                command.Description = "Kindle Mode";
+
+                command.HelpOption("-?|-h|--help");
+
+                command.OnExecute(() =>
+                {
+                    serviceProvider.GetService<Kindle>().Run();
+                    return 0;
+                });
+            });
+
+            cla.Command("hrhm", command =>
+            {
+                // 説明（ヘルプの出力で使用される）
+                command.Description = "HRHM Mode";
+
+                command.HelpOption("-?|-h|--help");
+
+                command.OnExecute(() =>
+                {
+                    serviceProvider.GetService<HRHM>().Run();
+                    return 0;
+                });
+            });
+
+            // デフォルトの動作（主にデバッグ用）
+            cla.OnExecute(() =>
+            {
+                try
+                {
+                    serviceProvider.GetService<Kindle>().Run();
+                    //serviceProvider.GetService<HRHM>().Run();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("異常終了" + e.Message);
+                }
+                return 0;
+            });
+
+            return cla;
         }
     }
 }
