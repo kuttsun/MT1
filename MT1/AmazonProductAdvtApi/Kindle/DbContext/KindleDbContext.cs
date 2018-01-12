@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MT1.AmazonProductAdvtApi.Kindle
 {
-    class KindleDbContext : DbContext
+    public class KindleDbContext : DbContext
     {
         public DbSet<SaleInformation> SaleInformations { get; set; }
         public DbSet<ItemDetail> ItemDetail { get; set; }
