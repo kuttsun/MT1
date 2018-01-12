@@ -20,8 +20,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         // セールが終了したかどうか
         public bool SaleFinished = false;
         public int TotalResults = 0;
+        public string Url;
+        public string PostId;
+        public DateTime? Published;
         public List<ItemDetail> Items = new List<ItemDetail>();
-        public PostInformation PostInformation = null;
 
         public void SetSalePeriod(DateTime now, string StartDate, string EndDate, int count, int total)
         {

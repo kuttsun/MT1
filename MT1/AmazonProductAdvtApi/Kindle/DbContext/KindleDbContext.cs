@@ -9,6 +9,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
     class KindleDbContext : DbContext
     {
         public DbSet<SaleInformation> SaleInformations { get; set; }
+        public DbSet<ItemDetail> ItemDetail { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
