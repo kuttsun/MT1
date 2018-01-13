@@ -42,7 +42,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             options = kindleOptions?.Value;
             this.blogger = blogger;
 
-            this.blogger.BlogId = options.BlogId;
+            if (this.blogger != null)
+            {
+                this.blogger.BlogId = options?.BlogId;
+            }
 
             // データベースの作成
             using (var db = new KindleDbContext())
@@ -72,7 +75,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         /// <param name="args"></param>
         public void Run()
         {
-            logger.LogInformation("----- Begin -----");
+            logger?.LogInformation("----- Begin -----");
 
             try
             {
@@ -93,12 +96,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     {
                         Task.Delay(requestWaitTimerMSec).Wait();
 
-                        logger.LogInformation($"[{count}/{saleInformations.Count()}件開始]");
+                        logger?.LogInformation($"[{count}/{saleInformations.Count()}件開始]");
 
                         // 既にセールが終了していないかどうかチェック
                         if (saleInformation.SaleFinished == true)
                         {
-                            logger.LogInformation($"{saleInformation.NodeId} は既にセール終了");
+                            logger?.LogInformation($"{saleInformation.NodeId} は既にセール終了");
                         }
                         else
                         {
@@ -107,7 +110,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                             {
                                 try
                                 {
-                                    logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
+                                    logger?.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
 
                                     CheckSalePeriod(saleInformation, count, saleInformations.Count());
 
@@ -116,7 +119,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                                 }
                                 catch (Exception e)
                                 {
-                                    logger.LogError(e.Message);
+                                    logger?.LogError(e.Message);
                                 }
                             }
                             else
@@ -124,7 +127,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                                 // まだ投稿していない場合は商品情報を取得して投稿する
                                 try
                                 {
-                                    logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
+                                    logger?.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
                                     if (ItemSearchAll(saleInformation) == true)
                                     {
                                         CheckSalePeriod(saleInformation, count, saleInformations.Count());
@@ -134,12 +137,12 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                                 }
                                 catch (Exception e)
                                 {
-                                    logger.LogError(e.Message);
+                                    logger?.LogError(e.Message);
                                 }
                             }
                         }
                         count++;
-                        logger.LogInformation($"[{count}/{saleInformations.Count()}件完了]");
+                        logger?.LogInformation($"[{count}/{saleInformations.Count()}件完了]");
 
                         // デバッグ用に指定回数だけ実行する
                         if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
@@ -148,7 +151,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                logger.LogError(e.Message);
+                logger?.LogError(e.Message);
                 throw;
             }
 
@@ -158,7 +161,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             // 最新セール一覧のページを更新
             UpdateLatestSaleListPage();
 
-            logger.LogInformation("----- End -----");
+            logger?.LogInformation("----- End -----");
         }
 
         /// <summary>
@@ -178,9 +181,9 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             using (var context = new KindleDbContext())
             {
-                logger.LogInformation($"現在の件数:{context.SaleInformations.Count()}件");
+                logger?.LogInformation($"現在の件数:{context.SaleInformations.Count()}件");
             }
-            logger.LogInformation($"セール情報一覧取得開始");
+            logger?.LogInformation($"セール情報一覧取得開始");
 
             // リクエストを送信して xml を取得
             var result = GetXml(request);
@@ -207,7 +210,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     Name = node.SelectSingleNode("ns:Name", xmlNsManager).InnerText
                 });
             }
-            logger.LogInformation($"セール情報一覧取得完了({newSaleInformations.Count()}件)");
+            logger?.LogInformation($"セール情報一覧取得完了({newSaleInformations.Count()}件)");
 
             // 現在のリストの項目が最新のリスト中になければ古い情報と判断して削除する
             int deleteCount = 0;
@@ -226,7 +229,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     }
                 }
                 context.SaveChanges();
-                logger.LogInformation($"{deleteCount}件の古いデータを削除(残り{context.SaleInformations.Count()}件)");
+                logger?.LogInformation($"{deleteCount}件の古いデータを削除(残り{context.SaleInformations.Count()}件)");
             }
 
 
@@ -245,7 +248,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                     }
                 }
                 context.SaveChanges();
-                logger.LogInformation($"{addCount}件の新規データを追加(計{context.SaleInformations.Count()}件)");
+                logger?.LogInformation($"{addCount}件の新規データを追加(計{context.SaleInformations.Count()}件)");
             }
 
             // ソート
@@ -301,7 +304,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["ItemPage"] = page.ToString()
             };
 
-            logger.LogInformation($"商品情報取得開始({page}ページ目)");
+            logger?.LogInformation($"商品情報取得開始({page}ページ目)");
 
             // リクエストを送信して xml を取得
             var result = GetXml(request);
@@ -318,7 +321,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             try
             {
                 var error = doc.SelectSingleNode("ns:ItemSearchResponse/ns:Items/ns:Request/ns:Errors/ns:Error/ns:Code", xmlNsManager).InnerText;
-                logger.LogWarning("エラー情報あり：" + error);
+                logger?.LogWarning("エラー情報あり：" + error);
                 saleInformation.Error = true;
             }
             catch (Exception)
@@ -334,7 +337,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                logger.LogError("TotalResults取得不可：" + e.Message);
+                logger?.LogError("TotalResults取得不可：" + e.Message);
             }
 
             // 商品情報を取得
@@ -365,10 +368,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch (Exception e)
             {
-                logger.LogError("nodeListなし：" + e.Message);
+                logger?.LogError("nodeListなし：" + e.Message);
             }
 
-            logger.LogInformation($"商品情報取得完了({page}ページ目、{saleInformation.Items.Count()}/{saleInformation.TotalResults}件)");
+            logger?.LogInformation($"商品情報取得完了({page}ページ目、{saleInformation.Items.Count()}/{saleInformation.TotalResults}件)");
 
             return true;
         }
@@ -389,7 +392,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["ItemId"] = asin
             };
 
-            logger.LogInformation($"ASIN {asin} の詳細取得開始");
+            logger?.LogInformation($"ASIN {asin} の詳細取得開始");
 
             // リクエストを送信して xml を取得
             var result = GetXml(request);
@@ -402,7 +405,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
 
-            logger.LogInformation($"ASIN {asin} の詳細取得完了");
+            logger?.LogInformation($"ASIN {asin} の詳細取得完了");
         }
 
         /// <summary>
@@ -421,11 +424,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 saleInformation.Url = postInformation.Url;
                 saleInformation.PostId = postInformation.PostId;
 
-                logger.LogInformation($"投稿完了\n{saleInformation.Url}\n{saleInformation.PostId}");
+                logger?.LogInformation($"投稿完了\n{saleInformation.Url}\n{saleInformation.PostId}");
             }
             catch (Exception e)
             {
-                logger.LogError("投稿失敗\n" + e.Message);
+                logger?.LogError("投稿失敗\n" + e.Message);
                 throw;
             }
         }
@@ -441,11 +444,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 saleInformation.Url = postInformation.Url;
                 saleInformation.PostId = postInformation.PostId;
 
-                logger.LogInformation($"{saleInformation.Url}\n{saleInformation.PostId}");
+                logger?.LogInformation($"{saleInformation.Url}\n{saleInformation.PostId}");
             }
             catch (Exception e)
             {
-                logger.LogError("記事の更新失敗\n" + e.Message);
+                logger?.LogError("記事の更新失敗\n" + e.Message);
                 throw;
             }
         }
@@ -646,7 +649,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch
             {
-                logger.LogError("開催中セール一覧のページ更新失敗");
+                logger?.LogError("開催中セール一覧のページ更新失敗");
                 throw;
             }
         }
@@ -704,7 +707,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             }
             catch
             {
-                logger.LogError("最新セール情報一覧のページ更新失敗");
+                logger?.LogError("最新セール情報一覧のページ更新失敗");
                 throw;
             }
         }

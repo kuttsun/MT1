@@ -2,7 +2,7 @@
 {
     public class ItemDetail
     {
-        int Id { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; } = null;
         public string Content { get; set; } = null;
         public string PublicationDate { get; set; } = null;
@@ -11,7 +11,7 @@
         public string MediumImageUrl { get; set; } = null;
         public string LargeImageUrl { get; set; } = null;
 
-        public string NodeId = null;
+        public string NodeId { get; set; } = null;
         public SaleInformation SaleInformation { get; set; }
     }
 }

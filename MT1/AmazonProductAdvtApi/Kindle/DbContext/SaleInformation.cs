@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
-
 using MT1.GoogleApi;
 
 namespace MT1.AmazonProductAdvtApi.Kindle
 {
     public class SaleInformation
     {
-        public string NodeId = null;
+        [Key]
+        public string NodeId { get; set; } = null;
         public string Name = null;
         public bool Error = false;
         // セール開始日
