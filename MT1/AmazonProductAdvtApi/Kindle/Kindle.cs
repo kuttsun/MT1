@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 using AngleSharp.Parser.Html;
 
@@ -28,8 +29,9 @@ namespace MT1.AmazonProductAdvtApi.Kindle
     {
         ILogger logger;
         IBlogger blogger;
-        KindleData data;
+        //KindleData data;
         KindleOptions options;
+        DateTime lastUpdate;
 
         /// <summary>
         /// コンストラクタ
@@ -42,20 +44,26 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             this.blogger.BlogId = options.BlogId;
 
-            var serializer = new XmlSerializer(typeof(KindleData));
-            try
+            // データベースの作成
+            using (var db = new KindleDbContext())
             {
-                using (var fs = new FileStream(options.GetDataFilePath(), FileMode.Open))
-                {
-                    data = (KindleData)serializer.Deserialize(fs);
-                }
-                logger.LogInformation("デシリアライズ完了");
+                db.Database.EnsureCreated();
             }
-            catch
-            {
-                logger.LogError("デシリアライズ失敗");
-                data = new KindleData();
-            }
+
+            //var serializer = new XmlSerializer(typeof(KindleData));
+            //try
+            //{
+            //    using (var fs = new FileStream(options.GetDataFilePath(), FileMode.Open))
+            //    {
+            //        data = (KindleData)serializer.Deserialize(fs);
+            //    }
+            //    logger.LogInformation("デシリアライズ完了");
+            //}
+            //catch
+            //{
+            //    logger.LogError("デシリアライズ失敗");
+            //    data = new KindleData();
+            //}
         }
 
         /// <summary>
@@ -71,67 +79,72 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 // セールの一覧を取得
                 BrowseNodeLookup("2275277051");
 
-                data.LastUpdate = DateTime.Now.ToString("yyyy/MM/dd (ddd) HH:mm:ss");
+                lastUpdate = DateTime.Now;//. ToString("yyyy/MM/dd (ddd) HH:mm:ss");
 
                 // 個々の URL を取得
                 int count = 0;
-                foreach (var saleInformation in data.SaleInformations)
+                using (var context = new KindleDbContext())
                 {
-                    Task.Delay(requestWaitTimerMSec).Wait();
+                    var saleInformations = context.SaleInformations
+                        .Include(SaleInformation => SaleInformation.Items)
+                        .ToList();
 
-                    logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件開始]");
+                    foreach (var saleInformation in saleInformations)
+                    {
+                        Task.Delay(requestWaitTimerMSec).Wait();
 
-                    // 既にセールが終了していないかどうかチェック
-                    if (saleInformation.SaleFinished == true)
-                    {
-                        logger.LogInformation($"{saleInformation.NodeId} は既にセール終了");
-                    }
-                    else
-                    {
-                        // ブログに投稿済みかどうかチェック
-                        if (saleInformation.PostInformation != null)
+                        logger.LogInformation($"[{count}/{saleInformations.Count()}件開始]");
+
+                        // 既にセールが終了していないかどうかチェック
+                        if (saleInformation.SaleFinished == true)
                         {
-                            try
-                            {
-                                logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
-
-                                CheckSalePeriod(saleInformation, count, data.SaleInformations.Count());
-
-                                // 終了した場合はタイトルを終了済みにする
-                                UpdateArticle(saleInformation);
-                            }
-                            catch (Exception e)
-                            {
-                                logger.LogError(e.Message);
-                            }
+                            logger.LogInformation($"{saleInformation.NodeId} は既にセール終了");
                         }
                         else
                         {
-                            // まだ投稿していない場合は商品情報を取得して投稿する
-                            try
+                            // ブログに投稿済みかどうかチェック
+                            if (saleInformation.Url != null)
                             {
-                                logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
-                                if (ItemSearchAll(saleInformation) == true)
+                                try
                                 {
-                                    CheckSalePeriod(saleInformation, count, data.SaleInformations.Count());
+                                    logger.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
 
-                                    PostToBlog(saleInformation);
+                                    CheckSalePeriod(saleInformation, count, saleInformations.Count());
+
+                                    // 終了した場合はタイトルを終了済みにする
+                                    UpdateArticle(saleInformation);
+                                }
+                                catch (Exception e)
+                                {
+                                    logger.LogError(e.Message);
                                 }
                             }
-                            catch (Exception e)
+                            else
                             {
-                                logger.LogError(e.Message);
+                                // まだ投稿していない場合は商品情報を取得して投稿する
+                                try
+                                {
+                                    logger.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
+                                    if (ItemSearchAll(saleInformation) == true)
+                                    {
+                                        CheckSalePeriod(saleInformation, count, saleInformations.Count());
+
+                                        PostToBlog(saleInformation);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    logger.LogError(e.Message);
+                                }
                             }
                         }
+                        count++;
+                        logger.LogInformation($"[{count}/{saleInformations.Count()}件完了]");
+
+                        // デバッグ用に指定回数だけ実行する
+                        if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
                     }
-                    count++;
-                    logger.LogInformation($"[{count}/{data.SaleInformations.Count()}件完了]");
-
-                    // デバッグ用に指定回数だけ実行する
-                    if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
                 }
-
-                SerializeData(options.GetDataFilePath());
             }
             catch (Exception e)
             {
@@ -146,15 +159,6 @@ namespace MT1.AmazonProductAdvtApi.Kindle
             UpdateLatestSaleListPage();
 
             logger.LogInformation("----- End -----");
-        }
-
-        void SerializeData(string filePath)
-        {
-            var xmlSerializer = new XmlSerializer(typeof(KindleData));
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                xmlSerializer.Serialize(fileStream, data);
-            }
         }
 
         /// <summary>
@@ -172,7 +176,10 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                 ["BrowseNodeId"] = browseNodeId
             };
 
-            logger.LogInformation($"現在の件数:{data.SaleInformations.Count()}件");
+            using (var context = new KindleDbContext())
+            {
+                logger.LogInformation($"現在の件数:{context.SaleInformations.Count()}件");
+            }
             logger.LogInformation($"セール情報一覧取得開始");
 
             // リクエストを送信して xml を取得
@@ -204,34 +211,45 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             // 現在のリストの項目が最新のリスト中になければ古い情報と判断して削除する
             int deleteCount = 0;
-            foreach (var saleInformation in data.SaleInformations)
-            {
-                var foundItem = newSaleInformations.Find(item => item.NodeId == saleInformation.NodeId);
 
-                if (foundItem == null)
+            using (var context = new KindleDbContext())
+            {
+                var saleInformations = context.SaleInformations.ToList();
+                foreach (var saleInformation in saleInformations)
                 {
-                    data.SaleInformations.Remove(saleInformation);
-                    deleteCount++;
+                    var foundItem = newSaleInformations.Find(item => item.NodeId == saleInformation.NodeId);
+
+                    if (foundItem == null)
+                    {
+                        context.SaleInformations.Remove(saleInformation);
+                        deleteCount++;
+                    }
                 }
+                context.SaveChanges();
+                logger.LogInformation($"{deleteCount}件の古いデータを削除(残り{context.SaleInformations.Count()}件)");
             }
-            logger.LogInformation($"{deleteCount}件の古いデータを削除(残り{data.SaleInformations.Count()}件)");
+
 
             // 最新のリストのうち、現在のリスト中にないものだけ現在のリストに新規に追加する
             int addCount = 0;
-            foreach (var newSaleInformation in newSaleInformations)
+            using (var context = new KindleDbContext())
             {
-                var foundItem = data.SaleInformations.Find(item => item.NodeId == newSaleInformation.NodeId);
-
-                if (foundItem == null)
+                foreach (var newSaleInformation in newSaleInformations)
                 {
-                    data.SaleInformations.Add(newSaleInformation);
-                    addCount++;
+                    var foundItem = context.SaleInformations.Where(item => item.NodeId == newSaleInformation.NodeId).FirstOrDefault();
+
+                    if (foundItem == null)
+                    {
+                        context.SaleInformations.Add(newSaleInformation);
+                        addCount++;
+                    }
                 }
+                context.SaveChanges();
+                logger.LogInformation($"{addCount}件の新規データを追加(計{context.SaleInformations.Count()}件)");
             }
-            logger.LogInformation($"{addCount}件の新規データを追加(計{data.SaleInformations.Count()}件)");
 
             // ソート
-            data.SaleInformations.Sort((a, b) => string.Compare(a.NodeId, b.NodeId));
+            //data.SaleInformations.Sort((a, b) => string.Compare(a.NodeId, b.NodeId));
         }
 
         /// <summary>
@@ -399,9 +417,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             try
             {
-                saleInformation.PostInformation = blogger.InsertPost(CreateArticle(saleInformation));
+                var postInformation = blogger.InsertPost(CreateArticle(saleInformation));
+                saleInformation.Url = postInformation.Url;
+                saleInformation.PostId = postInformation.PostId;
 
-                logger.LogInformation($"投稿完了\n{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+                logger.LogInformation($"投稿完了\n{saleInformation.Url}\n{saleInformation.PostId}");
             }
             catch (Exception e)
             {
@@ -417,9 +437,11 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         {
             try
             {
-                saleInformation.PostInformation = blogger.UpdatePost(CreateArticle(saleInformation), saleInformation.PostInformation);
+                var postInformation = blogger.UpdatePost(CreateArticle(saleInformation), new PostInformation() { Url = saleInformation.Url, PostId = saleInformation.PostId });
+                saleInformation.Url = postInformation.Url;
+                saleInformation.PostId = postInformation.PostId;
 
-                logger.LogInformation($"{saleInformation.PostInformation.Url}\n{saleInformation.PostInformation.PostId}");
+                logger.LogInformation($"{saleInformation.Url}\n{saleInformation.PostId}");
             }
             catch (Exception e)
             {
@@ -575,39 +597,45 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         void UpdateCurrentSaleListPage()
         {
             // 逆順で表示
-            var saleInformations = data.SaleInformations.Reverse<SaleInformation>();
+            //var saleInformations = data.SaleInformations.Reverse<SaleInformation>();
+
+
 
             string content = $@"<p>
             Amazon Product Advertising API から取得した、現在開催中の Kindle セールの一覧です。<br>
             </p>
             <p>
-            更新日時：{data.LastUpdate}
+            更新日時：{lastUpdate}
             </p>";
 
             int count = 0;
             content += @"<div class=""table-responsive"">
             <table class=""table"">
             <tr><th>No.</th><th>開催期間</th><th>タイトル</th><th>Amazon</th></tr>";
-            foreach (var saleInformation in saleInformations)
-            {
-                if ((saleInformation.Error == false) && (saleInformation.SaleStarted == true) && (saleInformation.SaleFinished == false))
-                {
-                    string entry;
-                    if (saleInformation.PostInformation == null)
-                    {
-                        entry = saleInformation.Name;
-                    }
-                    else
-                    {
-                        entry = $"<a href='{saleInformation.PostInformation.Url}'>{saleInformation.Name}</a>";
-                    }
 
-                    content += $@"<tr>
+            using (var context = new KindleDbContext())
+            {
+                foreach (var saleInformation in context.SaleInformations)
+                {
+                    if ((saleInformation.Error == false) && (saleInformation.SaleStarted == true) && (saleInformation.SaleFinished == false))
+                    {
+                        string entry;
+                        if (saleInformation.Url == null)
+                        {
+                            entry = saleInformation.Name;
+                        }
+                        else
+                        {
+                            entry = $"<a href='{saleInformation.Url}'>{saleInformation.Name}</a>";
+                        }
+
+                        content += $@"<tr>
                     <td>{count++}</td>
                     <td>{saleInformation.GetSalePeriod()}</td>
                     <td>{entry}</td>
                     <td><a class='amazon' href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
                     </tr>";
+                    }
                 }
             }
             content += "</table></div>";
@@ -630,39 +658,43 @@ namespace MT1.AmazonProductAdvtApi.Kindle
         void UpdateLatestSaleListPage()
         {
             // 逆順で表示
-            var saleInformations = data.SaleInformations.Reverse<SaleInformation>();
+            //var saleInformations = data.SaleInformations.Reverse<SaleInformation>();
 
             string content = $@"<p>
             Amazon Product Advertising API から取得した Kindle のセールページ一覧です。<br>
             この中にはまだセールを開始していないものや、既に終了したセールなど、セールではないものもありますのでご注意ください。
             </p>
             <p>
-            更新日時：{data.LastUpdate}
+            更新日時：{lastUpdate}
             </p>";
 
             int count = 0;
             content += @"<div class=""table-responsive"">
             <table class=""table"">
             <tr><th>No.</th><th>開催期間</th><th>タイトル</th><th>Amazon</th><th>ESF</th></tr>";
-            foreach (var saleInformation in saleInformations)
-            {
-                string entry;
-                if (saleInformation.PostInformation == null)
-                {
-                    entry = saleInformation.Name;
-                }
-                else
-                {
-                    entry = $"<a href='{saleInformation.PostInformation.Url}'>{saleInformation.Name}</a>";
-                }
 
-                content += $@"<tr>
+            using (var context = new KindleDbContext())
+            {
+                foreach (var saleInformation in context.SaleInformations)
+                {
+                    string entry;
+                    if (saleInformation.Url == null)
+                    {
+                        entry = saleInformation.Name;
+                    }
+                    else
+                    {
+                        entry = $"<a href='{saleInformation.Url}'>{saleInformation.Name}</a>";
+                    }
+
+                    content += $@"<tr>
                 <td>{count++}</td>
                 <td>{saleInformation.GetSalePeriod()}</td>
                 <td>{entry}</td>
                 <td><a class='amazon' href='{GetAssociateLinkByBrowseNode(saleInformation.NodeId)}' target='_blank'>Amazon</a></td>
                 <td>{(saleInformation.Error ? "1" : "0")}{(saleInformation.SaleStarted ? "1" : "0")}{(saleInformation.SaleFinished ? "1" : "0")}</td>
                 </tr>";
+                }
             }
             content += "</table></div>";
 
