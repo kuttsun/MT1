@@ -263,6 +263,8 @@ __pycache__/
 /MT1/*.json
 
 *.bak
+*.db
+*.pubxml
 
 MT1/Data
 Coverage/

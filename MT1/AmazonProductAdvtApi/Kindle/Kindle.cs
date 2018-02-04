@@ -144,6 +144,8 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         count++;
                         logger?.LogInformation($"[{count}/{saleInformations.Count()}件完了]");
 
+                        context.SaveChanges();
+
                         // デバッグ用に指定回数だけ実行する
                         if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
                     }

@@ -1,4 +1,6 @@
-﻿namespace MT1.AmazonProductAdvtApi.Kindle
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MT1.AmazonProductAdvtApi.Kindle
 {
     public class ItemDetail
     {
@@ -11,7 +13,9 @@
         public string MediumImageUrl { get; set; } = null;
         public string LargeImageUrl { get; set; } = null;
 
+        
         public string NodeId { get; set; } = null;
+        [ForeignKey(nameof(NodeId))]
         public SaleInformation SaleInformation { get; set; }
     }
 }
