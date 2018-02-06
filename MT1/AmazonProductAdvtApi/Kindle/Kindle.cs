@@ -92,54 +92,65 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         .Include(SaleInformation => SaleInformation.Items)
                         .ToList();
 
+                    int total = saleInformations.Count();
+
                     foreach (var saleInformation in saleInformations)
                     {
                         Task.Delay(requestWaitTimerMSec).Wait();
 
-                        logger?.LogInformation($"[{count}/{saleInformations.Count()}件開始]");
+                        logger?.LogInformation($"[{count}/{total}件開始]");
 
-                        // 既にセールが終了していないかどうかチェック
-                        if (saleInformation.SaleFinished == true)
+                        if ((total - options.Debug.NumberOfNodesToGet) <= count && count < total)
                         {
-                            logger?.LogInformation($"{saleInformation.NodeId} は既にセール終了");
-                        }
-                        else
-                        {
-                            // ブログに投稿済みかどうかチェック
-                            if (saleInformation.Url != null)
+                            // 最新の数件のみ処理
+
+                            // 既にセールが終了していないかどうかチェック
+                            if (saleInformation.SaleFinished == true)
                             {
-                                try
-                                {
-                                    logger?.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
-
-                                    CheckSalePeriod(saleInformation, count, saleInformations.Count());
-
-                                    // 終了した場合はタイトルを終了済みにする
-                                    UpdateArticle(saleInformation);
-                                }
-                                catch (Exception e)
-                                {
-                                    logger?.LogError(e.Message);
-                                }
+                                logger?.LogInformation($"{saleInformation.NodeId} は既にセール終了");
                             }
                             else
                             {
-                                // まだ投稿していない場合は商品情報を取得して投稿する
-                                try
+                                // ブログに投稿済みかどうかチェック
+                                if (saleInformation.Url != null)
                                 {
-                                    logger?.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
-                                    if (ItemSearchAll(saleInformation) == true)
+                                    try
                                     {
+                                        logger?.LogInformation($"{saleInformation.NodeId} は既に投稿済み");
+
                                         CheckSalePeriod(saleInformation, count, saleInformations.Count());
 
-                                        PostToBlog(saleInformation);
+                                        // 終了した場合はタイトルを終了済みにする
+                                        UpdateArticle(saleInformation);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        logger?.LogError(e.Message);
                                     }
                                 }
-                                catch (Exception e)
+                                else
                                 {
-                                    logger?.LogError(e.Message);
+                                    // まだ投稿していない場合は商品情報を取得して投稿する
+                                    try
+                                    {
+                                        logger?.LogInformation($"----- {saleInformation.NodeId} の商品情報取得開始 -----");
+                                        if (ItemSearchAll(saleInformation) == true)
+                                        {
+                                            CheckSalePeriod(saleInformation, count, saleInformations.Count());
+
+                                            PostToBlog(saleInformation);
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        logger?.LogError(e.Message);
+                                    }
                                 }
                             }
+                        }
+                        else
+                        {
+                            logger?.LogInformation($"Skip {saleInformation.NodeId}");
                         }
                         count++;
                         logger?.LogInformation($"[{count}/{saleInformations.Count()}件完了]");
@@ -147,7 +158,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
                         context.SaveChanges();
 
                         // デバッグ用に指定回数だけ実行する
-                        if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
+                        //if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
                     }
                 }
             }
