@@ -631,7 +631,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             using (var context = new KindleDbContext())
             {
-                foreach (var saleInformation in context.SaleInformations)
+                foreach (var saleInformation in context.SaleInformations.OrderByDescending(x => x.NodeId))
                 {
                     if ((saleInformation.Error == false) && (saleInformation.SaleStarted == true) && (saleInformation.SaleFinished == false))
                     {
@@ -691,7 +691,7 @@ namespace MT1.AmazonProductAdvtApi.Kindle
 
             using (var context = new KindleDbContext())
             {
-                foreach (var saleInformation in context.SaleInformations)
+                foreach (var saleInformation in context.SaleInformations.OrderByDescending(x => x.NodeId))
                 {
                     string entry;
                     if (saleInformation.Url == null)
