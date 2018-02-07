@@ -259,8 +259,8 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
-/MT1/*.xml
-/MT1/*.json
+/MT1.*/*.xml
+/MT1.*/*.json
 
 *.bak
 *.db

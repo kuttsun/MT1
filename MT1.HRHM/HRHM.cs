@@ -7,20 +7,17 @@ using System.IO;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Configuration;
 
 using System.Xml;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 
-using AngleSharp.Parser.Html;
-
-using MT1.Options;
-using MT1.GoogleApi;
-using MT1.Extensions;
+using MT1.Core.Amazon;
+using MT1.Core.Google.Blogger;
+using MT1.Core.Extensions;
 
 
-namespace MT1.AmazonProductAdvtApi.HRHM
+namespace MT1.HRHM
 {
     public class HRHM : Amazon
     {
@@ -29,12 +26,12 @@ namespace MT1.AmazonProductAdvtApi.HRHM
         HRHMData data;
 
         ILogger logger;
-        Options.Options options;
+        HRHMOptions options;
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public HRHM(IBlogger blogger, ILogger<HRHM> logger, IOptions<Options.Options> hrHMoptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
+        public HRHM(IBlogger blogger, ILogger<HRHM> logger, IOptions<HRHMOptions> hrHMoptions, IOptions<AmazonOptions> amazonOptions) : base(logger, amazonOptions)
         {
             this.logger = logger;
             options = hrHMoptions?.Value;

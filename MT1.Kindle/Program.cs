@@ -3,6 +3,7 @@ using System.Text;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Reflection;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -89,33 +90,33 @@ namespace MT1.Kindle
             var cla = new CommandLineApplication(throwOnUnexpectedArg: false)
             {
                 // アプリケーション名（ヘルプの出力で使用される）
-                Name = "BT1",
+                Name = "MT1.Kindle",
             };
 
             // ヘルプ出力のトリガーとなるオプションを指定
             cla.HelpOption("-?|-h|--help");
 
-            cla.Command("kindle", command =>
+            // デバッグ・メンテナンス操作
+            cla.Command("debug", command =>
             {
                 // 説明（ヘルプの出力で使用される）
-                command.Description = "Kindle Mode";
+                command.Description = "Debug Mode";
 
                 command.HelpOption("-?|-h|--help");
 
                 command.OnExecute(() =>
                 {
-                    serviceProvider.GetService<Kindle>().Run();
+                    //serviceProvider.GetService<Kindle>().Run();
                     return 0;
                 });
             });
 
-            // デフォルトの動作（主にデバッグ用）
+            // デフォルトの動作
             cla.OnExecute(() =>
             {
                 try
                 {
                     serviceProvider.GetService<Kindle>().Run();
-                    //serviceProvider.GetService<HRHM>().Run();
                 }
                 catch (Exception e)
                 {

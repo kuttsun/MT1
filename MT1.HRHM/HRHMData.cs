@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MT1.AmazonProductAdvtApi.HRHM
+namespace MT1.HRHM
 {
     public class HRHMData
     {
