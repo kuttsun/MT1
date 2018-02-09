@@ -83,6 +83,7 @@ namespace MT1.Kindle
             {
                 // セールの一覧を取得
                 BrowseNodeLookup("2275277051");
+                Task.Delay(requestWaitTimerMSec).Wait();
 
                 lastUpdate = DateTime.Now;//. ToString("yyyy/MM/dd (ddd) HH:mm:ss");
 
@@ -98,11 +99,9 @@ namespace MT1.Kindle
 
                     foreach (var saleInformation in saleInformations)
                     {
-                        Task.Delay(requestWaitTimerMSec).Wait();
-
                         logger?.LogInformation($"[{count}/{total}件開始]");
 
-                        if ((total - options.Debug.NumberOfNodesToGet) <= count && count < total)
+                        if ((total - options.ActiveCount) <= count && count < total)
                         {
                             // 最新の数件のみ処理
 

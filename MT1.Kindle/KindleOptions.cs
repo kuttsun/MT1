@@ -15,6 +15,7 @@ namespace MT1.Kindle
         public string OutDir { get; set; }
         public string NodeListFile { get; set; }
         public string DataFile { get; set; }
+        public int ActiveCount { get; set; }
         public Debug Debug { get; set; }
 
         public string GetNodeListFilePath()
