@@ -206,8 +206,6 @@ namespace MT1.Kindle
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
 
-            WriteXml(doc, options.GetNodeListFilePath());
-
             // 名前空間の指定
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
@@ -326,8 +324,6 @@ namespace MT1.Kindle
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
 
-            WriteXml(doc, $"{options.OutDir}{saleInformation.NodeId}.xml");
-
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
 
@@ -413,8 +409,6 @@ namespace MT1.Kindle
 
             XmlDocument doc = new XmlDocument();
             doc.Load(result);
-
-            WriteXml(doc, $"ASIN_{asin}.xml");
 
             XmlNamespaceManager xmlNsManager = new XmlNamespaceManager(doc.NameTable);
             xmlNsManager.AddNamespace("ns", ns);
