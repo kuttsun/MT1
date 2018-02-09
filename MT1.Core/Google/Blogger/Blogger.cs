@@ -140,7 +140,7 @@ namespace MT1.Core.Google.Blogger
                 }
                 catch (Exception e)
                 {
-                    logger.LogError("投稿更新失敗、一定時間後リトライします\n" + e.Message);
+                    logger.LogError($"投稿更新失敗、一定時間後リトライします(BlogId:{BlogId}, PostId:{postInformation.PostId})\n" + e.Message);
                     Task.Delay(requestLimitationMSec).Wait();
                 }
             }
