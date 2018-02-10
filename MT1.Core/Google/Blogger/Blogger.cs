@@ -140,7 +140,11 @@ namespace MT1.Core.Google.Blogger
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"投稿更新失敗、一定時間後リトライします(BlogId:{BlogId}, PostId:{postInformation.PostId})\n" + e.Message);
+                    logger.LogError($"BlogId:{BlogId}, PostId:{postInformation.PostId}\n投稿更新失敗、一定時間後リトライします\n" + e.Message);
+                    if(e.Message.Contains("Message[Not Found] Location[ - ] Reason[notFound] Domain[global]"))
+                    {
+                        logger.LogWarning("記事が見つからないため Skip したほうがよい？");
+                    }
                     Task.Delay(requestLimitationMSec).Wait();
                 }
             }
