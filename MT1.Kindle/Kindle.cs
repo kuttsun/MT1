@@ -99,7 +99,7 @@ namespace MT1.Kindle
 
                     foreach (var saleInformation in saleInformations)
                     {
-                        logger?.LogInformation($"[{count}/{total}件開始]");
+                        logger?.LogInformation($"[{count + 1}/{total}件開始]");
 
                         if ((total - options.ActiveCount) <= count && count < total)
                         {
@@ -153,8 +153,8 @@ namespace MT1.Kindle
                         {
                             logger?.LogInformation($"Skip {saleInformation.NodeId}");
                         }
+                        logger?.LogInformation($"[{count + 1}/{saleInformations.Count()}件完了]");
                         count++;
-                        logger?.LogInformation($"[{count}/{saleInformations.Count()}件完了]");
 
                         context.SaveChanges();
 
