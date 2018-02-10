@@ -157,10 +157,7 @@ namespace MT1.Kindle
                         count++;
 
                         context.SaveChanges();
-
-                        // デバッグ用に指定回数だけ実行する
-                        //if ((options.Debug.NumberOfNodesToGet > 0) && (count >= options.Debug.NumberOfNodesToGet)) break;
-                    }
+                   }
                 }
             }
             catch (Exception e)
