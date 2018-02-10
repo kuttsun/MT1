@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MT1.Kindle": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

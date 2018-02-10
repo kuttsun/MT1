@@ -38,6 +38,8 @@ namespace MT1.Kindle
 
         private static void ConfigureServices(IServiceCollection services)
         {
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
             // ロギングの設定
             ILoggerFactory loggerFactory = new LoggerFactory()
                 // コンソールに出力する
@@ -59,6 +61,7 @@ namespace MT1.Kindle
                 // ここでどの設定元を使うか指定
                 // 同じキーが設定されている場合、後にAddしたものが優先される
                 .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
                 // ここでは JSON より環境変数を優先している
                 //.AddEnvironmentVariables()
                 // 上記の設定を実際に適用して構成読み込み用のオブジェクトを得る
