@@ -3,10 +3,10 @@ configuration: Release
 before_build:
   - appveyor-retry dotnet restore
 build_script:
-  - dotnet build MT1
+  - dotnet build
 test_script:
   # OpenCover でカバレッジを計測
-  - OpenCover.bat
+  - OpenCover.bat MT1.Kindle.Tests
   # Codecov へカバレッジ結果を渡す
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
