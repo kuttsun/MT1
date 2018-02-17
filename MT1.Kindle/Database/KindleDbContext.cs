@@ -8,12 +8,23 @@ namespace MT1.Kindle.Database
 {
     public class KindleDbContext : DbContext
     {
+        public string DataSource { get; set; } = "Kindle.db";
+
         public DbSet<SaleInformation> SaleInformations { get; set; }
         public DbSet<ItemDetail> ItemDetails { get; set; }
 
+        public KindleDbContext()
+        {
+        }
+
+        public KindleDbContext(string dataSource)
+        {
+            DataSource = dataSource;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=Kindle.db");
+            optionsBuilder.UseSqlite("Data Source=" + DataSource);
         }
     }
 }
