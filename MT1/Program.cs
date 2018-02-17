@@ -10,8 +10,10 @@ using Microsoft.Extensions.CommandLineUtils;
 
 using MT1.Core.Amazon;
 using MT1.Core.Google.Blogger;
+using MT1.HRHM;
+using MT1.Kindle;
 
-namespace MT1.HRHM
+namespace MT1
 {
     class Program
     {
@@ -75,6 +77,7 @@ namespace MT1.HRHM
             // IConfigurationRoot から GetSection 及び GetChildren で個々の設定の取り出しができる
             // ここでは "MyOptions" セクションの内容を MyOptions として登録
             services.Configure<AmazonOptions>(configuration.GetSection(nameof(AmazonOptions)));
+            services.Configure<KindleOptions>(configuration.GetSection(nameof(KindleOptions)));
             services.Configure<HRHMOptions>(configuration.GetSection(nameof(HRHMOptions)));
 
             // IBlogger を DI サービスコンテナに登録
@@ -82,34 +85,37 @@ namespace MT1.HRHM
 
             // Application を DI サービスコンテナに登録する
             // AddTransient はインジェクション毎にインスタンスが生成される
-            services.AddTransient<HRHM>();
+            services.AddTransient<HRHM.HRHM>();
+            services.AddTransient<Kindle.Kindle>();
         }
 
         static CommandLineApplication CommandLine(IServiceProvider serviceProvider)
         {
-            Assembly.GetExecutingAssembly();
-
             // プログラム引数の解析
             var cla = new CommandLineApplication(throwOnUnexpectedArg: false)
             {
                 // アプリケーション名（ヘルプの出力で使用される）
-                Name = "MT1.HRHM",
+                Name = Assembly.GetExecutingAssembly().GetName().Name,
             };
 
             // ヘルプ出力のトリガーとなるオプションを指定
             cla.HelpOption("-?|-h|--help");
 
-            // デバッグ・メンテナンス操作
-            cla.Command("debug", command =>
+            cla.Command("HRHM", command =>
             {
-                // 説明（ヘルプの出力で使用される）
-                command.Description = "Debug Mode";
-
                 command.HelpOption("-?|-h|--help");
-
                 command.OnExecute(() =>
                 {
-                    //serviceProvider.GetService<Kindle>().Run();
+                    serviceProvider.GetService<HRHM.HRHM>().Run();
+                    return 0;
+                });
+            });
+            cla.Command("Kindle", command =>
+            {
+                command.HelpOption("-?|-h|--help");
+                command.OnExecute(() =>
+                {
+                    serviceProvider.GetService<Kindle.Kindle>().Run();
                     return 0;
                 });
             });
@@ -117,14 +123,7 @@ namespace MT1.HRHM
             // デフォルトの動作
             cla.OnExecute(() =>
             {
-                try
-                {
-                    serviceProvider.GetService<HRHM>().Run();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("異常終了" + e.Message);
-                }
+                cla.ShowHelp();
                 return 0;
             });
 
